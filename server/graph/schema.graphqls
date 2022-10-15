@@ -2,6 +2,21 @@
 #
 # https://gqlgen.com/getting-started/
 
+type Room {
+  id: ID!
+  createdAt: String!
+  updatedAt: String
+  deletedAt: String!
+}
+
+type Message {
+  id: ID!
+  text: String!
+  createdAt: String!
+  updatedAt: String
+  deletedAt: String!
+}
+
 type Todo {
   id: ID!
   text: String!
@@ -16,6 +31,7 @@ type User {
 
 type Query {
   todos: [Todo!]!
+  rooms: [Room!]!
 }
 
 input NewTodo {
@@ -23,6 +39,11 @@ input NewTodo {
   userId: String!
 }
 
+input NewRoom {
+  title: String
+}
+
 type Mutation {
   createTodo(input: NewTodo!): Todo!
+  createRoom(input: NewRoom!): Room!
 }

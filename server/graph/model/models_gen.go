@@ -2,9 +2,24 @@
 
 package model
 
+type Message struct {
+	ID        string  `json:"id"`
+	Text      string  `json:"text"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt *string `json:"updatedAt"`
+	DeletedAt string  `json:"deletedAt"`
+}
+
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
+}
+
+type Room struct {
+	ID        string  `json:"id"`
+	CreatedAt string  `json:"createdAt"`
+	UpdatedAt *string `json:"updatedAt"`
+	DeletedAt string  `json:"deletedAt"`
 }
 
 type Todo struct {

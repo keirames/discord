@@ -17,7 +17,21 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	return nil, nil
+	todo := make([]*model.Todo, 0)
+
+	return todo, nil
+}
+
+// Rooms is the resolver for the rooms field.
+func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
+	var rooms []*model.Room
+
+	err := model.DbQuery.Find(model.Room{}).First(&rooms).Error
+	if err != nil {
+		return nil, nil
+	}
+
+	return rooms, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
