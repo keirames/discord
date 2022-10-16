@@ -8,7 +8,7 @@ import (
 type User struct {
 	ID    uint `gorm:"primaryKey"`
 	Name  string
-	Rooms []*Room `gorm:"many2many:user_rooms"`
+	Rooms []*Room `gorm:"many2many:room_members"`
 }
 
 func (u User) MapUserToModel() model.User {

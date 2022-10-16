@@ -10,7 +10,7 @@ import (
 type Room struct {
 	gorm.Model
 	Title    string
-	Users    []*User   `gorm:"many2many:user_rooms"`
+	Users    []*User   `gorm:"many2many:room_members"`
 	Messages []Message `gorm:"foreignKey:RoomID"`
 }
 
