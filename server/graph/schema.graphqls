@@ -17,6 +17,7 @@ type Message {
   createdAt: String!
   updatedAt: String
   deletedAt: String
+  userId: String!
 }
 
 type Todo {
@@ -35,6 +36,7 @@ type Query {
   todos: [Todo!]!
   rooms: [Room!]!
   room(id: ID!): Room!
+  messages(roomId: String!): [Message!]!
 }
 
 input NewTodo {

@@ -6,9 +6,10 @@ import (
 )
 
 type User struct {
-	ID    uint `gorm:"primaryKey"`
-	Name  string
-	Rooms []*Room `gorm:"many2many:room_members"`
+	ID       uint `gorm:"primaryKey"`
+	Name     string
+	Rooms    []*Room   `gorm:"many2many:room_members"`
+	Messages []Message `gorm:"foreignKey:UserID"`
 }
 
 func (u User) MapUserToModel() model.User {

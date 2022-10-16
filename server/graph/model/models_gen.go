@@ -8,6 +8,7 @@ type Message struct {
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
 	DeletedAt *string `json:"deletedAt"`
+	UserID    string  `json:"userId"`
 }
 
 type NewRoom struct {

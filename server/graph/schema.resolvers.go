@@ -10,6 +10,7 @@ import (
 	customErrors "server/graph/errors"
 	"server/graph/generated"
 	"server/graph/model"
+	"strconv"
 )
 
 // CreateTodo is the resolver for the createTodo field.
@@ -62,8 +63,14 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 		return nil, customErrors.BadRequest()
 	}
 
+	s, err := strconv.ParseUint(input.UserID, 10, 64)
+	if err != nil {
+		return nil, customErrors.BadRequest()
+	}
+
 	msg := entities.Message{
 		RoomID: room.ID,
+		UserID: uint(s),
 		Text:   input.Text,
 	}
 	if entities.DbQuery.Create(&msg).Error != nil {
@@ -106,6 +113,20 @@ func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error
 	roomModel := room.MapRoomWithModel()
 
 	return &roomModel, nil
+}
+
+// Messages is the resolver for the messages field.
+func (r *queryResolver) Messages(ctx context.Context, roomID string) ([]*model.Message, error) {
+	// TODO: check if token & user is valid
+	var messages []*entities.Message
+
+	if entities.DbQuery.Find(&messages, "room_id = ?", roomID).Error != nil {
+		return nil, customErrors.BadRequest()
+	}
+
+	msgModel := entities.MapMessagesWithModel(messages)
+
+	return msgModel, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
