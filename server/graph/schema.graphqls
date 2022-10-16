@@ -47,7 +47,14 @@ input NewRoom {
   members: [String!]!
 }
 
+input SendMessageInput {
+  userId: ID!
+  roomId: ID!
+  text: String!
+}
+
 type Mutation {
   createTodo(input: NewTodo!): Todo!
   createRoom(input: NewRoom!): Room!
+  sendMessage(input: SendMessageInput!): Message!
 }

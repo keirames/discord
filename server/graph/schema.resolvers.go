@@ -49,6 +49,32 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 	return &newRoomModel, nil
 }
 
+// SendMessage is the resolver for the sendMessage field.
+func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*model.Message, error) {
+	// TODO: check if user has a valid token
+
+	var room entities.Room
+	if entities.DbQuery.Where("id = ?", input.RoomID).Find(&room).Error != nil {
+		return nil, customErrors.BadRequest()
+	}
+
+	if len(input.Text) == 0 {
+		return nil, customErrors.BadRequest()
+	}
+
+	msg := entities.Message{
+		RoomID: room.ID,
+		Text:   input.Text,
+	}
+	if entities.DbQuery.Create(&msg).Error != nil {
+		return nil, customErrors.BadRequest()
+	}
+
+	msgModel := entities.MapMessageWithModel(msg)
+
+	return &msgModel, nil
+}
+
 // Todos is the resolver for the todos field.
 func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 	todo := make([]*model.Todo, 0)

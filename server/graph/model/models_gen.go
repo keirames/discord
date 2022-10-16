@@ -29,6 +29,12 @@ type Room struct {
 	Members   []*User `json:"members"`
 }
 
+type SendMessageInput struct {
+	UserID string `json:"userId"`
+	RoomID string `json:"roomId"`
+	Text   string `json:"text"`
+}
+
 type Todo struct {
 	ID   string `json:"id"`
 	Text string `json:"text"`
