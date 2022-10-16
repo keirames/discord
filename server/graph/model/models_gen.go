@@ -7,7 +7,7 @@ type Message struct {
 	Text      string  `json:"text"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
-	DeletedAt string  `json:"deletedAt"`
+	DeletedAt *string `json:"deletedAt"`
 }
 
 type NewRoom struct {
@@ -25,7 +25,8 @@ type Room struct {
 	Title     *string `json:"title"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
-	DeletedAt string  `json:"deletedAt"`
+	DeletedAt *string `json:"deletedAt"`
+	Members   []*User `json:"members"`
 }
 
 type Todo struct {

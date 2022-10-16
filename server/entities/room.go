@@ -19,12 +19,19 @@ func (r Room) MapRoomWithModel() model.Room {
 	ua := r.UpdatedAt.String()
 	da := r.DeletedAt.Time.String()
 
+	members := make([]*model.User, len(r.Users))
+	for index, u := range r.Users {
+		uModel := u.MapUserToModel()
+		members[index] = &uModel
+	}
+
 	return model.Room{
 		ID:        strconv.FormatUint(uint64(r.ID), 10),
 		Title:     &r.Title,
 		CreatedAt: ca,
 		UpdatedAt: &ua,
-		DeletedAt: da,
+		DeletedAt: &da,
+		Members:   members,
 	}
 }
 
