@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"server/entities"
-	"server/graph/errors"
+	customErrors "server/graph/errors"
 	"server/graph/generated"
 	"server/graph/model"
 )
@@ -23,7 +23,7 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 	memberIds := input.Members
 
 	if len(memberIds) == 0 {
-		return nil, errors.BadRequest()
+		return nil, customErrors.BadRequest()
 	}
 
 	var members []entities.User
@@ -31,7 +31,7 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 	entities.DbQuery.Where("id IN ?", memberIds).Find(&members)
 
 	if len(members) == 0 {
-		return nil, errors.BadRequest()
+		return nil, customErrors.BadRequest()
 	}
 
 	if len(roomTitle) == 0 {
@@ -48,7 +48,7 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 
 	err := entities.DbQuery.Create(&newRoom).Error
 	if err != nil {
-		return nil, errors.BadRequest()
+		return nil, customErrors.BadRequest()
 	}
 	fmt.Println(newRoom)
 
@@ -72,6 +72,11 @@ func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 	}
 
 	return rooms, nil
+}
+
+// Room is the resolver for the room field.
+func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error) {
+	panic(fmt.Errorf("not implemented: Room - room"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

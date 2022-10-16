@@ -33,6 +33,7 @@ type User {
 type Query {
   todos: [Todo!]!
   rooms: [Room!]!
+  room(id: ID!): Room!
 }
 
 input NewTodo {
