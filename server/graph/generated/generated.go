@@ -385,7 +385,7 @@ input NewTodo {
 }
 
 input NewRoom {
-  title: String
+  title: String!
   members: [String!]!
 }
 
@@ -3429,7 +3429,7 @@ func (ec *executionContext) unmarshalInputNewRoom(ctx context.Context, obj inter
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
-			it.Title, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			it.Title, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}

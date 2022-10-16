@@ -25,6 +25,7 @@ func main() {
 	// Migration
 	entities.DbQuery.AutoMigrate(
 		&entities.User{},
+		&entities.UserRooms{},
 		&entities.Message{},
 		&entities.Room{},
 	)

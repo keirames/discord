@@ -2,6 +2,7 @@ package entities
 
 import (
 	"server/graph/model"
+	"strconv"
 
 	"gorm.io/gorm"
 )
@@ -19,7 +20,7 @@ func (r Room) MapRoomWithModel() model.Room {
 	da := r.DeletedAt.Time.String()
 
 	return model.Room{
-		ID:        string(rune(r.ID)),
+		ID:        strconv.FormatUint(uint64(r.ID), 10),
 		Title:     &r.Title,
 		CreatedAt: ca,
 		UpdatedAt: &ua,

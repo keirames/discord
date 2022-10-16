@@ -11,7 +11,7 @@ type Message struct {
 }
 
 type NewRoom struct {
-	Title   *string  `json:"title"`
+	Title   string   `json:"title"`
 	Members []string `json:"members"`
 }
 

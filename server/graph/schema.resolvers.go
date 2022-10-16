@@ -19,14 +19,14 @@ func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) 
 
 // CreateRoom is the resolver for the createRoom field.
 func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) (*model.Room, error) {
-	roomTitle := *input.Title
+	roomTitle := input.Title
 	memberIds := input.Members
 
 	if len(memberIds) == 0 {
 		return nil, customErrors.BadRequest()
 	}
 
-	var members []entities.User
+	var members []*entities.User
 	// Keep panic cause the only way make query error is db down
 	entities.DbQuery.Where("id IN ?", memberIds).Find(&members)
 
@@ -34,25 +34,19 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 		return nil, customErrors.BadRequest()
 	}
 
-	if len(roomTitle) == 0 {
-		genName := ""
-		for _, m := range members {
-			genName = genName + ", " + m.Name
-		}
-		roomTitle = genName
-	}
-
 	newRoom := entities.Room{
 		Title: roomTitle,
+		Users: members,
 	}
 
 	err := entities.DbQuery.Create(&newRoom).Error
 	if err != nil {
 		return nil, customErrors.BadRequest()
 	}
-	fmt.Println(newRoom)
 
-	return nil, nil
+	newRoomModel := newRoom.MapRoomWithModel()
+
+	return &newRoomModel, nil
 }
 
 // Todos is the resolver for the todos field.

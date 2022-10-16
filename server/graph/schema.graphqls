@@ -42,7 +42,7 @@ input NewTodo {
 }
 
 input NewRoom {
-  title: String
+  title: String!
   members: [String!]!
 }
 
