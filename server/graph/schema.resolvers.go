@@ -64,19 +64,30 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
-	var rooms []*model.Room
+	var rooms entities.Rooms
 
 	err := entities.DbQuery.Find(model.Room{}).First(&rooms).Error
 	if err != nil {
 		return nil, nil
 	}
 
-	return rooms, nil
+	roomsModel := rooms.MapRoomsWithModel()
+
+	return roomsModel, nil
 }
 
 // Room is the resolver for the room field.
 func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error) {
-	panic(fmt.Errorf("not implemented: Room - room"))
+	var room entities.Room
+
+	err := entities.DbQuery.Where("id = ?", id).First(&room).Error
+	if err != nil {
+		return nil, customErrors.NotFound()
+	}
+
+	roomModel := room.MapRoomWithModel()
+
+	return &roomModel, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
