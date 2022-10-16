@@ -4,35 +4,15 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"server/entities"
 	"server/graph"
 	"server/graph/generated"
-	"server/graph/model"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"gorm.io/gorm"
 )
 
 const defaultPort = "3000"
-
-type Messages struct {
-	gorm.Model
-	Text   string
-	RoomID uint
-}
-
-type Rooms struct {
-	gorm.Model
-	Title    string
-	Users    []*User    `gorm:"many2many:user_rooms"`
-	Messages []Messages `gorm:"foreignKey:RoomID"`
-}
-
-type User struct {
-	ID    uint `gorm:"primaryKey"`
-	Name  string
-	Rooms []*Rooms `gorm:"many2many:user_rooms"`
-}
 
 func main() {
 	port := os.Getenv("PORT")
@@ -40,10 +20,14 @@ func main() {
 		port = defaultPort
 	}
 
-	model.ConnectDatabase()
+	entities.ConnectDatabase()
 
 	// Migration
-	model.DbQuery.AutoMigrate(&User{}, &Messages{}, &Rooms{})
+	entities.DbQuery.AutoMigrate(
+		&entities.User{},
+		&entities.Message{},
+		&entities.Room{},
+	)
 
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 

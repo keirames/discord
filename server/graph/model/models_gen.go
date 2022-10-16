@@ -10,6 +10,11 @@ type Message struct {
 	DeletedAt string  `json:"deletedAt"`
 }
 
+type NewRoom struct {
+	Title   *string  `json:"title"`
+	Members []string `json:"members"`
+}
+
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
@@ -17,6 +22,7 @@ type NewTodo struct {
 
 type Room struct {
 	ID        string  `json:"id"`
+	Title     *string `json:"title"`
 	CreatedAt string  `json:"createdAt"`
 	UpdatedAt *string `json:"updatedAt"`
 	DeletedAt string  `json:"deletedAt"`

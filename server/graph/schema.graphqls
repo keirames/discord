@@ -4,6 +4,7 @@
 
 type Room {
   id: ID!
+  title: String
   createdAt: String!
   updatedAt: String
   deletedAt: String!
@@ -41,6 +42,7 @@ input NewTodo {
 
 input NewRoom {
   title: String
+  members: [String!]!
 }
 
 type Mutation {

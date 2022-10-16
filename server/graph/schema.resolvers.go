@@ -6,6 +6,8 @@ package graph
 import (
 	"context"
 	"fmt"
+	"server/entities"
+	"server/graph/errors"
 	"server/graph/generated"
 	"server/graph/model"
 )
@@ -13,6 +15,44 @@ import (
 // CreateTodo is the resolver for the createTodo field.
 func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
 	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
+}
+
+// CreateRoom is the resolver for the createRoom field.
+func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) (*model.Room, error) {
+	roomTitle := *input.Title
+	memberIds := input.Members
+
+	if len(memberIds) == 0 {
+		return nil, errors.BadRequest()
+	}
+
+	var members []entities.User
+	// Keep panic cause the only way make query error is db down
+	entities.DbQuery.Where("id IN ?", memberIds).Find(&members)
+
+	if len(members) == 0 {
+		return nil, errors.BadRequest()
+	}
+
+	if len(roomTitle) == 0 {
+		genName := ""
+		for _, m := range members {
+			genName = genName + ", " + m.Name
+		}
+		roomTitle = genName
+	}
+
+	newRoom := entities.Room{
+		Title: roomTitle,
+	}
+
+	err := entities.DbQuery.Create(&newRoom).Error
+	if err != nil {
+		return nil, errors.BadRequest()
+	}
+	fmt.Println(newRoom)
+
+	return nil, nil
 }
 
 // Todos is the resolver for the todos field.
@@ -26,7 +66,7 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 	var rooms []*model.Room
 
-	err := model.DbQuery.Find(model.Room{}).First(&rooms).Error
+	err := entities.DbQuery.Find(model.Room{}).First(&rooms).Error
 	if err != nil {
 		return nil, nil
 	}
