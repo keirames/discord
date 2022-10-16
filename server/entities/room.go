@@ -35,14 +35,12 @@ func (r Room) MapRoomWithModel() model.Room {
 	}
 }
 
-type Rooms []Room
-
-func (rooms Rooms) MapRoomsWithModel() []*model.Room {
+func MapRoomsWithModel(rooms []*Room) []*model.Room {
 	result := make([]*model.Room, len(rooms))
 
-	for _, room := range rooms {
+	for index, room := range rooms {
 		roomModel := room.MapRoomWithModel()
-		result = append(result, &roomModel)
+		result[index] = &roomModel
 	}
 
 	return result

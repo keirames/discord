@@ -58,17 +58,15 @@ func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
 
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
-	// var rooms entities.Rooms
+	var rooms []*entities.Room
 
-	// err := entities.DbQuery.Find(entities.Rooms{}).First(&rooms).Error
-	// if err != nil {
-	// 	return nil, nil
-	// }
+	if entities.DbQuery.Preload("Users").Find(&rooms).Error != nil {
+		return nil, customErrors.BadRequest()
+	}
 
-	// roomsModel := rooms.MapRoomsWithModel()
+	roomsModel := entities.MapRoomsWithModel(rooms)
 
-	// return roomsModel, nil
-	return nil, nil
+	return roomsModel, nil
 }
 
 // Room is the resolver for the room field.
