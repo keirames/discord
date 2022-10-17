@@ -1,0 +1,14 @@
+output   = "models"
+wipe     = true
+no-tests = true
+add-enum-types = true
+
+[psql]
+dbname = "chat-app"
+host   = "localhost"
+port   = 5433
+user   = "postgres"
+pass   = "password"
+schema = "public"
+sslmode = "disable"
+blacklist = ["migrations", "other"]
