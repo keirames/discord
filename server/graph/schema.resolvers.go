@@ -6,127 +6,136 @@ package graph
 import (
 	"context"
 	"fmt"
-	"server/entities"
-	customErrors "server/graph/errors"
-	"server/graph/generated"
-	"server/graph/model"
-	"strconv"
-)
+	"squirrel/db"
+	"squirrel/db/entities"
+	"squirrel/graph/generated"
+	"squirrel/graph/model"
+	"squirrel/utils"
 
-// CreateTodo is the resolver for the createTodo field.
-func (r *mutationResolver) CreateTodo(ctx context.Context, input model.NewTodo) (*model.Todo, error) {
-	panic(fmt.Errorf("not implemented: CreateTodo - createTodo"))
-}
+	"github.com/Masterminds/squirrel"
+)
 
 // CreateRoom is the resolver for the createRoom field.
 func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) (*model.Room, error) {
-	roomTitle := input.Title
-	memberIds := input.Members
-
-	if len(memberIds) == 0 {
-		return nil, customErrors.BadRequest()
-	}
-
-	var members []*entities.User
-	// Keep panic cause the only way make query error is db down
-	entities.DbQuery.Where("id IN ?", memberIds).Find(&members)
-
-	if len(members) == 0 {
-		return nil, customErrors.BadRequest()
-	}
-
-	newRoom := entities.Room{
-		Title: roomTitle,
-		Users: members,
-	}
-
-	err := entities.DbQuery.Create(&newRoom).Error
-	if err != nil {
-		return nil, customErrors.BadRequest()
-	}
-
-	newRoomModel := newRoom.MapRoomWithModel()
-
-	return &newRoomModel, nil
+	panic(fmt.Errorf("not implemented: CreateRoom - createRoom"))
 }
 
 // SendMessage is the resolver for the sendMessage field.
 func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*model.Message, error) {
-	// TODO: check if user has a valid token
-
-	var room entities.Room
-	if entities.DbQuery.Where("id = ?", input.RoomID).Find(&room).Error != nil {
-		return nil, customErrors.BadRequest()
-	}
-
-	if len(input.Text) == 0 {
-		return nil, customErrors.BadRequest()
-	}
-
-	s, err := strconv.ParseUint(input.UserID, 10, 64)
-	if err != nil {
-		return nil, customErrors.BadRequest()
-	}
-
-	msg := entities.Message{
-		RoomID: room.ID,
-		UserID: uint(s),
-		Text:   input.Text,
-	}
-	if entities.DbQuery.Create(&msg).Error != nil {
-		return nil, customErrors.BadRequest()
-	}
-
-	msgModel := entities.MapMessageWithModel(msg)
-
-	return &msgModel, nil
+	panic(fmt.Errorf("not implemented: SendMessage - sendMessage"))
 }
 
-// Todos is the resolver for the todos field.
-func (r *queryResolver) Todos(ctx context.Context) ([]*model.Todo, error) {
-	todo := make([]*model.Todo, 0)
+// AddMember is the resolver for the addMember field.
+func (r *mutationResolver) AddMember(ctx context.Context, userID string, roomID string) (string, error) {
+	panic(fmt.Errorf("not implemented: AddMember - addMember"))
+}
 
-	return todo, nil
+// KickMember is the resolver for the kickMember field.
+func (r *mutationResolver) KickMember(ctx context.Context, userID string, roomID string) (string, error) {
+	panic(fmt.Errorf("not implemented: KickMember - kickMember"))
+}
+
+// DeleteMessage is the resolver for the deleteMessage field.
+func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID string) (string, error) {
+	panic(fmt.Errorf("not implemented: DeleteMessage - deleteMessage"))
 }
 
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
-	var rooms []*entities.Room
+	sql, _, err :=
+		squirrel.
+			Select(`rooms.*, u.id as "user.id", u.name as "user.name"`).
+			From("rooms").
+			InnerJoin("room_members rm on rm.room_id = rooms.id").
+			InnerJoin("users u on rm.user_id = u.id").
+			ToSql()
+	utils.Throw(err)
 
-	if entities.DbQuery.Preload("Users").Find(&rooms).Error != nil {
-		return nil, customErrors.BadRequest()
+	rows, err := db.Q.Queryx(sql)
+	utils.Throw(err)
+
+	rooms := []entities.Room{}
+	for rows.Next() {
+		// specific struct
+		type roomRow struct {
+			ID       uint   `db:"id"`
+			Title    string `db:"title"`
+			UserID   uint   `db:"user.id"`
+			UserName string `db:"user.name"`
+		}
+		var rr roomRow
+		rows.StructScan(&rr)
+
+		idx := -1
+		for rIdx, r := range rooms {
+			if r.ID == rr.ID {
+				fmt.Println(rIdx)
+				idx = rIdx
+			}
+		}
+
+		// room exist
+		if idx != -1 {
+			rooms[idx].Users = append(
+				rooms[idx].Users,
+				entities.User{
+					ID:   rr.UserID,
+					Name: rr.UserName})
+		} else {
+			rooms = append(
+				rooms,
+				entities.Room{
+					ID:    rr.ID,
+					Title: rr.Title,
+					Users: []entities.User{{ID: rr.ID, Name: rr.UserName}},
+				},
+			)
+		}
 	}
 
-	roomsModel := entities.MapRoomsWithModel(rooms)
-
-	return roomsModel, nil
+	return entities.MapRoomsToModel(rooms), nil
 }
 
 // Room is the resolver for the room field.
 func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error) {
-	var room entities.Room
+	sql, args, err :=
+		squirrel.
+			Select(`rooms.*, u.id as "user.id", u.name as "user.name"`).
+			From("rooms").
+			InnerJoin("room_members rm on rm.room_id = rooms.id").
+			InnerJoin("users u on rm.user_id = u.id").
+			Where(squirrel.Eq{"rooms.id": id}).
+			PlaceholderFormat(squirrel.Dollar).
+			ToSql()
+	utils.Throw(err)
+	fmt.Println(sql)
 
-	if entities.DbQuery.Preload("Users").Find(&room, "id = ?", id).Error != nil {
-		return nil, customErrors.NotFound()
+	rows, err := db.Q.Queryx(sql, args...)
+	utils.Throw(err)
+
+	var room entities.Room
+	for rows.Next() {
+		type roomRow struct {
+			ID       uint   `db:"id"`
+			Title    string `db:"title"`
+			UserID   uint   `db:"user.id"`
+			UserName string `db:"user.name"`
+		}
+
+		var rr roomRow
+		utils.Throw(rows.StructScan(&rr))
+
+		room.ID = rr.ID
+		room.Title = rr.Title
+		room.Users = append(room.Users, entities.User{ID: rr.UserID, Name: rr.UserName})
 	}
 
-	roomModel := room.MapRoomWithModel()
-
-	return &roomModel, nil
+	return entities.MapRoomToModel(room), nil
 }
 
 // Messages is the resolver for the messages field.
 func (r *queryResolver) Messages(ctx context.Context, roomID string) ([]*model.Message, error) {
-	// TODO: check if token & user is valid
-	var messages []*entities.Message
-
-	if entities.DbQuery.Find(&messages, "room_id = ?", roomID).Error != nil {
-		return nil, customErrors.BadRequest()
-	}
-
-	msgModel := entities.MapMessagesWithModel(messages)
-
-	return msgModel, nil
+	panic(fmt.Errorf("not implemented: Messages - messages"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

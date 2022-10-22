@@ -3,12 +3,9 @@
 package model
 
 type Message struct {
-	ID        string  `json:"id"`
-	Text      string  `json:"text"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt *string `json:"updatedAt"`
-	DeletedAt *string `json:"deletedAt"`
-	UserID    string  `json:"userId"`
+	ID     string `json:"id"`
+	Text   string `json:"text"`
+	UserID string `json:"userId"`
 }
 
 type NewRoom struct {
@@ -16,31 +13,16 @@ type NewRoom struct {
 	Members []string `json:"members"`
 }
 
-type NewTodo struct {
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
-}
-
 type Room struct {
-	ID        string  `json:"id"`
-	Title     *string `json:"title"`
-	CreatedAt string  `json:"createdAt"`
-	UpdatedAt *string `json:"updatedAt"`
-	DeletedAt *string `json:"deletedAt"`
-	Members   []*User `json:"members"`
+	ID      string  `json:"id"`
+	Title   *string `json:"title"`
+	Members []*User `json:"members"`
 }
 
 type SendMessageInput struct {
 	UserID string `json:"userId"`
 	RoomID string `json:"roomId"`
 	Text   string `json:"text"`
-}
-
-type Todo struct {
-	ID   string `json:"id"`
-	Text string `json:"text"`
-	Done bool   `json:"done"`
-	User *User  `json:"user"`
 }
 
 type User struct {
