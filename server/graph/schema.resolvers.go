@@ -135,7 +135,21 @@ func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error
 
 // Messages is the resolver for the messages field.
 func (r *queryResolver) Messages(ctx context.Context, roomID string) ([]*model.Message, error) {
-	panic(fmt.Errorf("not implemented: Messages - messages"))
+	sql, args, err :=
+		squirrel.
+			Select(`messages.*, u.id as "user.id", u.name as "user.name"`).
+			From("messages").
+			InnerJoin("users u on u.id = messages.user_id").
+			Where(squirrel.Eq{"room_id": roomID}).
+			PlaceholderFormat(squirrel.Dollar).
+			ToSql()
+	utils.Throw(err)
+	fmt.Println(sql)
+
+	var messages []entities.Message
+	utils.Throw(db.Q.Select(&messages, sql, args...))
+
+	return entities.MapMessagesToModel(messages), nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

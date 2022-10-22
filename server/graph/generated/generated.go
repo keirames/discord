@@ -47,6 +47,7 @@ type ComplexityRoot struct {
 	Message struct {
 		ID     func(childComplexity int) int
 		Text   func(childComplexity int) int
+		User   func(childComplexity int) int
 		UserID func(childComplexity int) int
 	}
 
@@ -117,6 +118,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Message.Text(childComplexity), true
+
+	case "Message.user":
+		if e.complexity.Message.User == nil {
+			break
+		}
+
+		return e.complexity.Message.User(childComplexity), true
 
 	case "Message.userId":
 		if e.complexity.Message.UserID == nil {
@@ -334,6 +342,7 @@ type Message {
   id: ID!
   text: String!
   userId: String!
+  user: User
 }
 
 type User {
@@ -681,6 +690,53 @@ func (ec *executionContext) fieldContext_Message_userId(ctx context.Context, fie
 	return fc, nil
 }
 
+func (ec *executionContext) _Message_user(ctx context.Context, field graphql.CollectedField, obj *model.Message) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Message_user(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖsquirrelᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Message_user(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Message",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createRoom(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createRoom(ctx, field)
 	if err != nil {
@@ -789,6 +845,8 @@ func (ec *executionContext) fieldContext_Mutation_sendMessage(ctx context.Contex
 				return ec.fieldContext_Message_text(ctx, field)
 			case "userId":
 				return ec.fieldContext_Message_userId(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -1132,6 +1190,8 @@ func (ec *executionContext) fieldContext_Query_messages(ctx context.Context, fie
 				return ec.fieldContext_Message_text(ctx, field)
 			case "userId":
 				return ec.fieldContext_Message_userId(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
@@ -3394,6 +3454,10 @@ func (ec *executionContext) _Message(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "user":
+
+			out.Values[i] = ec._Message_user(ctx, field, obj)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4533,6 +4597,13 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	}
 	res := graphql.MarshalString(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOUser2ᚖsquirrelᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v *model.User) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalO__EnumValue2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐEnumValueᚄ(ctx context.Context, sel ast.SelectionSet, v []introspection.EnumValue) graphql.Marshaler {

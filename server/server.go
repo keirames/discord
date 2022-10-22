@@ -15,18 +15,18 @@ import (
 
 const defaultPort = "4000"
 
-type User struct {
-	ID   uint   `db:"id"`
-	Name string `db:"name"`
-}
+// type User struct {
+// 	ID   uint   `db:"id"`
+// 	Name string `db:"name"`
+// }
 
-type Message struct {
-	ID     uint   `db:"id"`
-	Text   string `db:"text"`
-	UserId uint   `db:"user_id"`
-	RoomId uint   `db:"room_id"`
-	User   User   `db:"user"`
-}
+// type Message struct {
+// 	ID     uint   `db:"id"`
+// 	Text   string `db:"text"`
+// 	UserId uint   `db:"user_id"`
+// 	RoomId uint   `db:"room_id"`
+// 	User   User   `db:"user"`
+// }
 
 // sql, _, _ := sq.Select("*").From("messages").ToSql()
 // 	messages := []Message{}

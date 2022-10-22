@@ -11,6 +11,7 @@ type Message {
   id: ID!
   text: String!
   userId: String!
+  user: User
 }
 
 type User {
