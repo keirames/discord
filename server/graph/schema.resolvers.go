@@ -10,9 +10,12 @@ import (
 	"squirrel/db/entities"
 	"squirrel/graph/generated"
 	"squirrel/graph/model"
+	"squirrel/repository"
 	"squirrel/utils"
+	"time"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // CreateRoom is the resolver for the createRoom field.
@@ -38,6 +41,28 @@ func (r *mutationResolver) KickMember(ctx context.Context, userID string, roomID
 // DeleteMessage is the resolver for the deleteMessage field.
 func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID string) (string, error) {
 	panic(fmt.Errorf("not implemented: DeleteMessage - deleteMessage"))
+}
+
+// SignIn is the resolver for the signIn field.
+func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, error) {
+	user, err := repository.UserRepo.FindByName(name)
+	if err != nil {
+		fmt.Println(err)
+		panic("bad request")
+	}
+
+	// TODO: remove secret
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"name": user.Name,
+		"nbf":  time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+	})
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		fmt.Println(err)
+		panic("bad request")
+	}
+
+	return tokenString, nil
 }
 
 // Rooms is the resolver for the rooms field.

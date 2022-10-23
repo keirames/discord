@@ -10,6 +10,7 @@ require (
 require (
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
@@ -27,6 +28,7 @@ require (
 
 require (
 	github.com/Masterminds/squirrel v1.5.3
+	github.com/go-chi/chi v1.5.4
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.7
 )

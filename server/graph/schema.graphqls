@@ -42,4 +42,5 @@ type Mutation {
   addMember(userId: String!, roomId: String!): String!
   kickMember(userId: String!, roomId: String!): String!
   deleteMessage(messageId: String!): String!
+  signIn(name: String!): String!
 }
