@@ -6,7 +6,7 @@ package graph
 import (
 	"context"
 	"fmt"
-	"squirrel/auth"
+	"squirrel/config"
 	"squirrel/db"
 	"squirrel/db/entities"
 	"squirrel/graph/generated"
@@ -52,20 +52,18 @@ func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, err
 		panic("bad request")
 	}
 
-	// TODO: remove secret
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"name": user.Name,
-		// TODO: Which type of time i could use here ? local ?
-		"exp": time.Now().Local().Add(time.Hour * time.Duration(1)),
-		"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+		"exp":  time.Now().Add(time.Hour * time.Duration(1)).Unix(),
+		"nbf":  time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 	})
-	tokenString, err := token.SignedString([]byte("secret"))
+	tokenString, err := token.SignedString([]byte(config.JWT_SECRET))
 	if err != nil {
 		fmt.Println(err)
 		panic("bad request")
 	}
 
-	auth.SetCookie(ctx, tokenString)
+	// auth.SetCookie(ctx, tokenString)
 
 	return tokenString, nil
 }

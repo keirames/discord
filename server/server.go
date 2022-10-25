@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"squirrel/auth"
+	"squirrel/config"
 	"squirrel/db"
 	"squirrel/graph"
 	"squirrel/graph/generated"
@@ -49,20 +50,19 @@ const defaultPort = "4000"
 // 	fmt.Printf("%+v\n", newMessages)
 
 func main() {
+	config.LoadEnv()
+
 	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
 
 	db.ConnectDB()
 
 	router := chi.NewRouter()
 
+	router.Use(auth.ExtractTokenMiddleware1())
 	router.Use(auth.Middleware())
 
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
-
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 	router.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
