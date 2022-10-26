@@ -1,6 +1,9 @@
 #
 # https://gqlgen.com/getting-started/
 
+# new directive
+directive @auth on FIELD_DEFINITION
+
 type Room {
   id: ID!
   title: String
@@ -31,16 +34,16 @@ input SendMessageInput {
 }
 
 type Query {
-  rooms: [Room!]!
-  room(id: ID!): Room!
-  messages(roomId: String!): [Message!]!
+  rooms: [Room!]! @auth
+  room(id: ID!): Room! @auth
+  messages(roomId: String!): [Message!]! @auth
 }
 
 type Mutation {
-  createRoom(input: NewRoom!): Room!
-  sendMessage(input: SendMessageInput!): Message!
-  addMember(userId: String!, roomId: String!): String!
-  kickMember(userId: String!, roomId: String!): String!
-  deleteMessage(messageId: String!): String!
-  signIn(name: String!): String!
+  createRoom(input: NewRoom!): Room! @auth
+  sendMessage(input: SendMessageInput!): Message! @auth
+  addMember(userId: String!, roomId: String!): String! @auth
+  kickMember(userId: String!, roomId: String!): String! @auth
+  deleteMessage(messageId: String!): String! @auth
+  signIn(name: String!): String! @auth
 }

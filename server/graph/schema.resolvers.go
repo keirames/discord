@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/squirrel"
-	"github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 // CreateRoom is the resolver for the createRoom field.

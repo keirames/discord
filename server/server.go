@@ -4,19 +4,18 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"squirrel/auth"
 	"squirrel/config"
 	"squirrel/db"
+	"squirrel/directives"
 	"squirrel/graph"
 	"squirrel/graph/generated"
+	"squirrel/middlewares"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
 	_ "github.com/lib/pq"
 )
-
-const defaultPort = "4000"
 
 // type User struct {
 // 	ID   uint   `db:"id"`
@@ -58,11 +57,13 @@ func main() {
 
 	router := chi.NewRouter()
 
-	router.Use(auth.ExtractTokenMiddleware1())
-	router.Use(auth.Middleware())
+	router.Use(middlewares.AuthMiddleware())
+
+	c := generated.Config{Resolvers: &graph.Resolver{}}
+	c.Directives.Auth = directives.Auth
+	srv := handler.NewDefaultServer(generated.NewExecutableSchema(c))
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
-	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 	router.Handle("/query", srv)
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
