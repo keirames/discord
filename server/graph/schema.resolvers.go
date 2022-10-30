@@ -26,14 +26,16 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 
 	users, err := repository.UserRepo.FindByIDs(memberIDs)
 	if err != nil {
-		utils.Throw(err)
+		return nil, utils.UserInputError()
 	}
 	if len(users) == 0 {
-		utils.Throw(err)
+		return nil, utils.UserInputError()
 	}
 
 	room, err := repository.RoomRepo.CreateRoom(utils.UintToString(user.ID), input.Title, memberIDs)
-	utils.Throw(err)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
 
 	return entities.MapRoomToModel(*room), nil
 }
@@ -59,20 +61,19 @@ func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID string) 
 }
 
 // SignIn is the resolver for the signIn field.
-func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, error) {
+func (r *mutationResolver) SignIn(ctx context.Context, name string) (*string, error) {
 	user, err := repository.UserRepo.FindByName(name)
 	if err != nil {
-		fmt.Println(err)
-		panic("bad request")
+		return nil, utils.UserInputError()
 	}
 
 	token, err := service.GenerateJwt(ctx, utils.UintToString(user.ID))
 	if err != nil {
-		utils.Throw(err)
+		return nil, utils.UserInputError()
 	}
 	middlewares.SetCookie(ctx, token)
 
-	return token, nil
+	return &token, nil
 }
 
 // Rooms is the resolver for the rooms field.
