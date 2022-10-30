@@ -10,7 +10,7 @@ import (
 )
 
 type JwtCustomClaim struct {
-	ID string `json:"id"`
+	UserID string `json:"userID"`
 	jwt.RegisteredClaims
 }
 
@@ -18,7 +18,7 @@ var jwtSecret = []byte(config.JWT_SECRET)
 
 func GenerateJwt(ctx context.Context, userID string) (string, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &JwtCustomClaim{
-		ID: userID,
+		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 3)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

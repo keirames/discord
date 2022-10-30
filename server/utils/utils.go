@@ -11,3 +11,18 @@ func Throw(err error) {
 		panic(err)
 	}
 }
+
+// TODO: generics solution ?
+func Uniq(sliceList []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+
+	for _, item := range sliceList {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+
+	return list
+}

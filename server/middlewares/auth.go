@@ -3,6 +3,8 @@ package middlewares
 import (
 	"context"
 	"net/http"
+	"squirrel/db/entities"
+	"squirrel/repository"
 	"squirrel/service"
 )
 
@@ -15,7 +17,8 @@ type authResponseWriter struct {
 type ContextKey string
 
 const tokenContextKey = "token"
-const authContextKey = "auth"
+const authContextKey = "auth-claims"
+const userContextKey = "auth-user"
 const cookieName = "auth-cookie"
 
 func (arw *authResponseWriter) Write(b []byte) (int, error) {
@@ -42,6 +45,11 @@ func GetClaims(ctx context.Context) *service.JwtCustomClaim {
 	return raw
 }
 
+func GetUser(ctx context.Context) *entities.User {
+	raw, _ := ctx.Value(ContextKey(userContextKey)).(*entities.User)
+	return raw
+}
+
 func AuthMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +66,7 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 			// in order to set it inside resolver - after token generated
 			ctx := context.WithValue(r.Context(), ContextKey(tokenContextKey), &arw.tokenToResolver)
 			// Allow unauthenticated user in
-			if c == nil || err == nil {
+			if c == nil || err != nil {
 				r = r.WithContext(ctx)
 
 				next.ServeHTTP(&arw, r)
@@ -68,7 +76,6 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 			// Validate token
 			validate, err := service.ValidateJwt(context.Background(), c.Value)
 			if err != nil || !validate.Valid {
-				// http.Error(w, "Invalid token", http.StatusForbidden)
 				ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
 				r = r.WithContext(ctx)
 				next.ServeHTTP(&arw, r)
@@ -85,7 +92,18 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 				return
 			}
 
+			// Get user detail
+			user, err := repository.UserRepo.FindByID(customClaims.UserID)
+			if err != nil {
+				ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
+				r = r.WithContext(ctx)
+				next.ServeHTTP(&arw, r)
+
+				return
+			}
+
 			ctx = context.WithValue(ctx, ContextKey(authContextKey), customClaims)
+			ctx = context.WithValue(ctx, ContextKey(userContextKey), user)
 			r = r.WithContext(ctx)
 
 			next.ServeHTTP(&arw, r)

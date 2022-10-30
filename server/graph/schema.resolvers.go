@@ -6,22 +6,36 @@ package graph
 import (
 	"context"
 	"fmt"
-	"squirrel/config"
 	"squirrel/db"
 	"squirrel/db/entities"
 	"squirrel/graph/generated"
 	"squirrel/graph/model"
+	"squirrel/middlewares"
 	"squirrel/repository"
+	"squirrel/service"
 	"squirrel/utils"
-	"time"
 
 	"github.com/Masterminds/squirrel"
-	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 // CreateRoom is the resolver for the createRoom field.
 func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) (*model.Room, error) {
-	panic(fmt.Errorf("not implemented: CreateRoom - createRoom"))
+	memberIDs := utils.Uniq(input.Members)
+
+	user := middlewares.GetUser(ctx)
+
+	users, err := repository.UserRepo.FindByIDs(memberIDs)
+	if err != nil {
+		utils.Throw(err)
+	}
+	if len(users) == 0 {
+		utils.Throw(err)
+	}
+
+	room, err := repository.RoomRepo.CreateRoom(utils.UintToString(user.ID), input.Title, memberIDs)
+	utils.Throw(err)
+
+	return entities.MapRoomToModel(*room), nil
 }
 
 // SendMessage is the resolver for the sendMessage field.
@@ -52,20 +66,13 @@ func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, err
 		panic("bad request")
 	}
 
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"name": user.Name,
-		"exp":  time.Now().Add(time.Hour * time.Duration(1)).Unix(),
-		"nbf":  time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-	})
-	tokenString, err := token.SignedString([]byte(config.JWT_SECRET))
+	token, err := service.GenerateJwt(ctx, utils.UintToString(user.ID))
 	if err != nil {
-		fmt.Println(err)
-		panic("bad request")
+		utils.Throw(err)
 	}
+	middlewares.SetCookie(ctx, token)
 
-	// auth.SetCookie(ctx, tokenString)
-
-	return tokenString, nil
+	return token, nil
 }
 
 // Rooms is the resolver for the rooms field.
@@ -115,7 +122,7 @@ func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 				entities.Room{
 					ID:    rr.ID,
 					Title: rr.Title,
-					Users: []entities.User{{ID: rr.ID, Name: rr.UserName}},
+					Users: []entities.User{{ID: rr.UserID, Name: rr.UserName}},
 				},
 			)
 		}
