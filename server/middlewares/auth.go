@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"squirrel/db/entities"
 	"squirrel/repository"
@@ -10,6 +11,7 @@ import (
 
 type authResponseWriter struct {
 	http.ResponseWriter
+	http.Hijacker
 	tokenToResolver string
 	tokenFromCookie string
 }
@@ -20,6 +22,15 @@ const tokenContextKey = "token"
 const authContextKey = "auth-claims"
 const userContextKey = "auth-user"
 const cookieName = "auth-cookie"
+
+// Respect the Hijack
+// func (arw *authResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+// 	h, ok := arw.(http.Hijacker)
+// 	if !ok {
+// 		return nil, nil, errors.New("hijack not supported")
+// 	}
+// 	return h.Hijack()
+// }
 
 func (arw *authResponseWriter) Write(b []byte) (int, error) {
 
@@ -53,7 +64,13 @@ func GetUser(ctx context.Context) *entities.User {
 func AuthMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			arw := authResponseWriter{w, "", ""}
+			// Keep hijacker to use websocket
+			h, ok := w.(http.Hijacker)
+			if !ok {
+				fmt.Println("Not support Hijacker")
+			}
+
+			arw := authResponseWriter{w, h, "", ""}
 
 			c, err := r.Cookie(cookieName)
 

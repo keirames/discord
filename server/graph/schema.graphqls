@@ -28,7 +28,6 @@ input NewRoom {
 }
 
 input SendMessageInput {
-  userId: ID!
   roomId: ID!
   text: String!
 }

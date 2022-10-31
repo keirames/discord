@@ -15,7 +15,7 @@ import (
 	"squirrel/service"
 	"squirrel/utils"
 
-	"github.com/Masterminds/squirrel"
+	sq "github.com/Masterminds/squirrel"
 )
 
 // CreateRoom is the resolver for the createRoom field.
@@ -42,7 +42,35 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 
 // SendMessage is the resolver for the sendMessage field.
 func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*model.Message, error) {
-	panic(fmt.Errorf("not implemented: SendMessage - sendMessage"))
+	user := middlewares.GetUser(ctx)
+
+	room, err := repository.RoomRepo.FindByID(input.RoomID)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	sql, args, err := sq.
+		Insert("messages").
+		Columns("text", "user_id", "room_id").
+		Values(input.Text, user.ID, room.ID).
+		Suffix("RETURNING \"id\"").
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	var msgID string
+	err = db.Q.Get(&msgID, sql, args...)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	return &model.Message{
+		ID:     msgID,
+		Text:   input.Text,
+		UserID: utils.UintToString(user.ID),
+	}, nil
 }
 
 // AddMember is the resolver for the addMember field.
@@ -61,25 +89,25 @@ func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID string) 
 }
 
 // SignIn is the resolver for the signIn field.
-func (r *mutationResolver) SignIn(ctx context.Context, name string) (*string, error) {
+func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, error) {
 	user, err := repository.UserRepo.FindByName(name)
 	if err != nil {
-		return nil, utils.UserInputError()
+		return "", utils.UserInputError()
 	}
 
 	token, err := service.GenerateJwt(ctx, utils.UintToString(user.ID))
 	if err != nil {
-		return nil, utils.UserInputError()
+		return "", utils.UserInputError()
 	}
 	middlewares.SetCookie(ctx, token)
 
-	return &token, nil
+	return token, nil
 }
 
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 	sql, _, err :=
-		squirrel.
+		sq.
 			Select(`rooms.*, u.id as "user.id", u.name as "user.name"`).
 			From("rooms").
 			InnerJoin("room_members rm on rm.room_id = rooms.id").
@@ -135,13 +163,13 @@ func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 // Room is the resolver for the room field.
 func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error) {
 	sql, args, err :=
-		squirrel.
+		sq.
 			Select(`rooms.*, u.id as "user.id", u.name as "user.name"`).
 			From("rooms").
 			InnerJoin("room_members rm on rm.room_id = rooms.id").
 			InnerJoin("users u on rm.user_id = u.id").
-			Where(squirrel.Eq{"rooms.id": id}).
-			PlaceholderFormat(squirrel.Dollar).
+			Where(sq.Eq{"rooms.id": id}).
+			PlaceholderFormat(sq.Dollar).
 			ToSql()
 	utils.Throw(err)
 	fmt.Println(sql)
@@ -172,12 +200,12 @@ func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error
 // Messages is the resolver for the messages field.
 func (r *queryResolver) Messages(ctx context.Context, roomID string) ([]*model.Message, error) {
 	sql, args, err :=
-		squirrel.
+		sq.
 			Select(`messages.*, u.id as "user.id", u.name as "user.name"`).
 			From("messages").
 			InnerJoin("users u on u.id = messages.user_id").
-			Where(squirrel.Eq{"room_id": roomID}).
-			PlaceholderFormat(squirrel.Dollar).
+			Where(sq.Eq{"room_id": roomID}).
+			PlaceholderFormat(sq.Dollar).
 			ToSql()
 	utils.Throw(err)
 	fmt.Println(sql)

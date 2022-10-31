@@ -374,7 +374,6 @@ input NewRoom {
 }
 
 input SendMessageInput {
-  userId: ID!
   roomId: ID!
   text: String!
 }
@@ -3627,21 +3626,13 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userId", "roomId", "text"}
+	fieldsInOrder := [...]string{"roomId", "text"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "userId":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-			it.UserID, err = ec.unmarshalNID2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "roomId":
 			var err error
 

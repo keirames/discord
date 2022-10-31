@@ -56,7 +56,8 @@ func (rr roomRepo) CreateRoom(userID string, title string, memberIds []string) (
 		sq.
 			Insert("rooms").
 			Columns("title").
-			Values(title).Suffix("RETURNING \"id\"").
+			Values(title).
+			Suffix("RETURNING \"id\"").
 			PlaceholderFormat(sq.Dollar).
 			ToSql()
 	utils.Throw(err)
