@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/friend_list.dart';
+import 'package:mobile/features/friends/friends.dart';
 import 'package:mobile/profile_avatar.dart';
 import 'package:mobile/search_bar.dart';
 
@@ -16,7 +16,7 @@ class ChatBox extends StatelessWidget {
             padding: EdgeInsets.symmetric(horizontal: 10),
             child: SearchBar(),
           ),
-          FriendList(),
+          FriendIconList(),
         ],
       ),
     );

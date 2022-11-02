@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:mobile/friend_icon.dart';
 import 'package:mobile/profile_avatar.dart';
 import 'package:mobile/widgets/chat/chat.dart';
 

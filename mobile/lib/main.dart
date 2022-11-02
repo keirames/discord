@@ -1,8 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/chat_box.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/chat_screen.dart';
+import 'package:mobile/counter_observer.dart';
 
-void main() {
+void main() async {
+  // await initHiveForFlutter();
+
+  // final HttpLink httpLink = HttpLink('http://localhost:4000/query');
+  // final AuthLink authLink = AuthLink(
+  //   getToken: () async => 'Bearer <YOUR_PERSONAL_ACCESS_TOKEN>',
+  // );
+  // final Link link = authLink.concat(httpLink);
+
+  // ValueNotifier<GraphQLClient> client = ValueNotifier(
+  //   GraphQLClient(
+  //     link: link,
+  //     // The default store is the InMemoryStore, which does NOT persist to disk
+  //     cache: GraphQLCache(store: HiveStore()),
+  //   ),
+  // );
+
+  Bloc.observer = CounterObserver();
+  // runApp(GraphQLProvider(
+  //   client: client,
+  //   child: const MyApp(),
+  // ));
   runApp(const MyApp());
 }
 

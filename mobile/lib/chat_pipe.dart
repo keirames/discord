@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
-import 'package:mobile/friend_icon.dart';
 import 'package:mobile/screens/chat_detail.dart';
 
 class ChatPipe extends StatelessWidget {

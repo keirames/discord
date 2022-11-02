@@ -3,7 +3,7 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:mobile/chat_box.dart';
 import 'package:mobile/chats.dart';
-import 'package:mobile/friend_list.dart';
+import 'package:mobile/features/friends/friends.dart';
 import 'package:mobile/profile_avatar.dart';
 import 'package:mobile/search_bar.dart';
 
@@ -38,7 +38,7 @@ class ChatScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: SearchBar(),
             ),
-            FriendList(),
+            FriendIconList(),
             Chats(),
           ],
         ),
