@@ -7,6 +7,8 @@ import (
 	"squirrel/db/entities"
 	"squirrel/repository"
 	"squirrel/service"
+	"strconv"
+	"strings"
 )
 
 type authResponseWriter struct {
@@ -67,7 +69,67 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 			// Keep hijacker to use websocket
 			h, ok := w.(http.Hijacker)
 			if !ok {
+				// TODO: cannot process if not support
 				fmt.Println("Not support Hijacker")
+			}
+
+			isMobile, err := strconv.ParseBool(r.Header.Get("x-mobile"))
+			if err != nil {
+				// TODO: do sth
+				fmt.Printf("do sth")
+			}
+
+			if isMobile {
+				reqToken := r.Header.Get("Authorization")
+				splitToken := strings.Split(reqToken, "Bearer")
+
+				ctx := context.WithValue(r.Context(), ContextKey("isMobile"), true)
+
+				if len(splitToken) != 2 {
+					r = r.WithContext(ctx)
+
+					next.ServeHTTP(w, r)
+					return
+				}
+
+				if len(splitToken) == 2 {
+					reqToken = strings.TrimSpace(splitToken[1])
+
+					validate, err := service.ValidateJwt(context.Background(), reqToken)
+					if err != nil || !validate.Valid {
+						ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
+						r = r.WithContext(ctx)
+						next.ServeHTTP(w, r)
+
+						return
+					}
+
+					customClaims, ok := validate.Claims.(*service.JwtCustomClaim)
+					if !ok {
+						ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
+						r = r.WithContext(ctx)
+						next.ServeHTTP(w, r)
+
+						return
+					}
+
+					// Get user detail
+					user, err := repository.UserRepo.FindByID(customClaims.UserID)
+					if err != nil {
+						ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
+						r = r.WithContext(ctx)
+						next.ServeHTTP(w, r)
+
+						return
+					}
+
+					ctx = context.WithValue(ctx, ContextKey(authContextKey), customClaims)
+					ctx = context.WithValue(ctx, ContextKey(userContextKey), user)
+					r = r.WithContext(ctx)
+
+					next.ServeHTTP(w, r)
+					return
+				}
 			}
 
 			arw := authResponseWriter{w, h, "", ""}
