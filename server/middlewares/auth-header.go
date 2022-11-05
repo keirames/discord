@@ -8,8 +8,13 @@ import (
 	"strings"
 )
 
-func failToAuth(ctx context.Context, w http.ResponseWriter, r *http.Request, next http.Handler) {
-	ctx = context.WithValue(ctx, ContextKey(AuthContextKey), nil)
+func failToRecognizeBearer(
+	ctx context.Context,
+	w http.ResponseWriter,
+	r *http.Request,
+	next http.Handler,
+) {
+	ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
 	r = r.WithContext(ctx)
 	next.ServeHTTP(w, r)
 }
@@ -40,25 +45,25 @@ func AuthHeaderMiddleware() func(http.Handler) http.Handler {
 
 				validate, err := service.ValidateJwt(context.Background(), reqToken)
 				if err != nil || !validate.Valid {
-					failToAuth(ctx, w, r, next)
+					failToRecognizeBearer(ctx, w, r, next)
 					return
 				}
 
 				customClaims, ok := validate.Claims.(*service.JwtCustomClaim)
 				if !ok {
-					failToAuth(ctx, w, r, next)
+					failToRecognizeBearer(ctx, w, r, next)
 					return
 				}
 
 				// Get user detail
 				user, err := repository.UserRepo.FindByID(customClaims.UserID)
 				if err != nil {
-					failToAuth(ctx, w, r, next)
+					failToRecognizeBearer(ctx, w, r, next)
 					return
 				}
 
-				ctx = context.WithValue(ctx, ContextKey(AuthContextKey), customClaims)
-				ctx = context.WithValue(ctx, ContextKey(UserContextKey), user)
+				ctx = context.WithValue(ctx, ContextKey(authContextKey), customClaims)
+				ctx = context.WithValue(ctx, ContextKey(userContextKey), user)
 				r = r.WithContext(ctx)
 
 				next.ServeHTTP(w, r)

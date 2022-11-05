@@ -84,7 +84,7 @@ func main() {
 
 	router.Use(middlewares.DeviceMiddleware())
 	router.Use(middlewares.AuthHeaderMiddleware())
-	router.Use(middlewares.AuthMiddleware())
+	router.Use(middlewares.CookieMiddleware())
 
 	c := generated.Config{Resolvers: &graph.Resolver{}}
 	c.Directives.Auth = directives.Auth
