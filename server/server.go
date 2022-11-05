@@ -82,6 +82,8 @@ func main() {
 
 	router := chi.NewRouter()
 
+	router.Use(middlewares.DeviceMiddleware())
+	router.Use(middlewares.AuthHeaderMiddleware())
 	router.Use(middlewares.AuthMiddleware())
 
 	c := generated.Config{Resolvers: &graph.Resolver{}}

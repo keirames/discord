@@ -99,7 +99,10 @@ func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, err
 	if err != nil {
 		return "", utils.UserInputError()
 	}
-	middlewares.SetCookie(ctx, token)
+
+	if !middlewares.IsFromMobile(ctx) {
+		middlewares.SetCookie(ctx, token)
+	}
 
 	return token, nil
 }

@@ -7,8 +7,6 @@ import (
 	"squirrel/db/entities"
 	"squirrel/repository"
 	"squirrel/service"
-	"strconv"
-	"strings"
 )
 
 type authResponseWriter struct {
@@ -20,10 +18,10 @@ type authResponseWriter struct {
 
 type ContextKey string
 
-const tokenContextKey = "token"
-const authContextKey = "auth-claims"
-const userContextKey = "auth-user"
-const cookieName = "auth-cookie"
+const TokenContextKey = "token"
+const AuthContextKey = "auth-claims"
+const UserContextKey = "auth-user"
+const CookieName = "auth-cookie"
 
 // Respect the Hijack
 // func (arw *authResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
@@ -38,7 +36,7 @@ func (arw *authResponseWriter) Write(b []byte) (int, error) {
 
 	if arw.tokenFromCookie != arw.tokenToResolver {
 		http.SetCookie(arw, &http.Cookie{
-			Name:     cookieName,
+			Name:     CookieName,
 			Value:    arw.tokenToResolver,
 			HttpOnly: true,
 			Path:     "/",
@@ -49,17 +47,17 @@ func (arw *authResponseWriter) Write(b []byte) (int, error) {
 }
 
 func SetCookie(ctx context.Context, value string) {
-	tokenPointer := ctx.Value(ContextKey(tokenContextKey)).(*string)
+	tokenPointer := ctx.Value(ContextKey(TokenContextKey)).(*string)
 	*tokenPointer = value
 }
 
 func GetClaims(ctx context.Context) *service.JwtCustomClaim {
-	raw, _ := ctx.Value(ContextKey(authContextKey)).(*service.JwtCustomClaim)
+	raw, _ := ctx.Value(ContextKey(AuthContextKey)).(*service.JwtCustomClaim)
 	return raw
 }
 
 func GetUser(ctx context.Context) *entities.User {
-	raw, _ := ctx.Value(ContextKey(userContextKey)).(*entities.User)
+	raw, _ := ctx.Value(ContextKey(UserContextKey)).(*entities.User)
 	return raw
 }
 
@@ -73,68 +71,15 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 				fmt.Println("Not support Hijacker")
 			}
 
-			isMobile, err := strconv.ParseBool(r.Header.Get("x-mobile"))
-			if err != nil {
-				// TODO: do sth
-				fmt.Printf("do sth")
-			}
-
+			isMobile := IsFromMobile(r.Context())
 			if isMobile {
-				reqToken := r.Header.Get("Authorization")
-				splitToken := strings.Split(reqToken, "Bearer")
-
-				ctx := context.WithValue(r.Context(), ContextKey("isMobile"), true)
-
-				if len(splitToken) != 2 {
-					r = r.WithContext(ctx)
-
-					next.ServeHTTP(w, r)
-					return
-				}
-
-				if len(splitToken) == 2 {
-					reqToken = strings.TrimSpace(splitToken[1])
-
-					validate, err := service.ValidateJwt(context.Background(), reqToken)
-					if err != nil || !validate.Valid {
-						ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
-						r = r.WithContext(ctx)
-						next.ServeHTTP(w, r)
-
-						return
-					}
-
-					customClaims, ok := validate.Claims.(*service.JwtCustomClaim)
-					if !ok {
-						ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
-						r = r.WithContext(ctx)
-						next.ServeHTTP(w, r)
-
-						return
-					}
-
-					// Get user detail
-					user, err := repository.UserRepo.FindByID(customClaims.UserID)
-					if err != nil {
-						ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
-						r = r.WithContext(ctx)
-						next.ServeHTTP(w, r)
-
-						return
-					}
-
-					ctx = context.WithValue(ctx, ContextKey(authContextKey), customClaims)
-					ctx = context.WithValue(ctx, ContextKey(userContextKey), user)
-					r = r.WithContext(ctx)
-
-					next.ServeHTTP(w, r)
-					return
-				}
+				next.ServeHTTP(w, r)
+				return
 			}
 
 			arw := authResponseWriter{w, h, "", ""}
 
-			c, err := r.Cookie(cookieName)
+			c, err := r.Cookie(CookieName)
 
 			if c != nil {
 				arw.tokenFromCookie = c.Value
@@ -143,7 +88,7 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 
 			// We pass the pointer of token into ctx inside resolver
 			// in order to set it inside resolver - after token generated
-			ctx := context.WithValue(r.Context(), ContextKey(tokenContextKey), &arw.tokenToResolver)
+			ctx := context.WithValue(r.Context(), ContextKey(TokenContextKey), &arw.tokenToResolver)
 			// Allow unauthenticated user in
 			if c == nil || err != nil {
 				r = r.WithContext(ctx)
@@ -155,7 +100,7 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 			// Validate token
 			validate, err := service.ValidateJwt(context.Background(), c.Value)
 			if err != nil || !validate.Valid {
-				ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
+				ctx = context.WithValue(ctx, ContextKey(AuthContextKey), nil)
 				r = r.WithContext(ctx)
 				next.ServeHTTP(&arw, r)
 
@@ -164,7 +109,7 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 
 			customClaims, ok := validate.Claims.(*service.JwtCustomClaim)
 			if !ok {
-				ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
+				ctx = context.WithValue(ctx, ContextKey(AuthContextKey), nil)
 				r = r.WithContext(ctx)
 				next.ServeHTTP(&arw, r)
 
@@ -174,15 +119,15 @@ func AuthMiddleware() func(http.Handler) http.Handler {
 			// Get user detail
 			user, err := repository.UserRepo.FindByID(customClaims.UserID)
 			if err != nil {
-				ctx = context.WithValue(ctx, ContextKey(authContextKey), nil)
+				ctx = context.WithValue(ctx, ContextKey(AuthContextKey), nil)
 				r = r.WithContext(ctx)
 				next.ServeHTTP(&arw, r)
 
 				return
 			}
 
-			ctx = context.WithValue(ctx, ContextKey(authContextKey), customClaims)
-			ctx = context.WithValue(ctx, ContextKey(userContextKey), user)
+			ctx = context.WithValue(ctx, ContextKey(AuthContextKey), customClaims)
+			ctx = context.WithValue(ctx, ContextKey(UserContextKey), user)
 			r = r.WithContext(ctx)
 
 			next.ServeHTTP(&arw, r)
