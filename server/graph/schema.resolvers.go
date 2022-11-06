@@ -16,6 +16,7 @@ import (
 	"squirrel/utils"
 
 	sq "github.com/Masterminds/squirrel"
+	"golang.org/x/exp/slices"
 )
 
 // CreateRoom is the resolver for the createRoom field.
@@ -74,17 +75,52 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 }
 
 // AddMember is the resolver for the addMember field.
-func (r *mutationResolver) AddMember(ctx context.Context, userID string, roomID string) (string, error) {
-	panic(fmt.Errorf("not implemented: AddMember - addMember"))
+func (r *mutationResolver) AddMember(ctx context.Context, userID string, roomID string) (*model.User, error) {
+	user := middlewares.GetUser(ctx)
+
+	newMember, err := repository.UserRepo.FindByID(userID)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	room, err := repository.RoomRepo.FindByIDIncludeMembers(roomID)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	// You be a member of room ?
+	idx := slices.IndexFunc(room.Users, func(u entities.User) bool {
+		return u.ID == user.ID
+	})
+	if idx == -1 {
+		return nil, utils.UserInputError()
+	}
+
+	// Is new member already in room
+	idx = slices.IndexFunc(room.Users, func(u entities.User) bool {
+		return u.ID == newMember.ID
+	})
+	if idx != -1 {
+		newMemberModel := entities.MapUserToModel(*newMember)
+		return &newMemberModel, nil
+	}
+
+	err = repository.RoomRepo.AddMember(roomID, utils.UintToString(newMember.ID))
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	newMemberModel := entities.MapUserToModel(*newMember)
+	return &newMemberModel, nil
 }
 
 // KickMember is the resolver for the kickMember field.
-func (r *mutationResolver) KickMember(ctx context.Context, userID string, roomID string) (string, error) {
+func (r *mutationResolver) KickMember(ctx context.Context, userID string, roomID string) (*model.User, error) {
 	panic(fmt.Errorf("not implemented: KickMember - kickMember"))
 }
 
 // DeleteMessage is the resolver for the deleteMessage field.
-func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID string) (string, error) {
+func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID string) (*model.Message, error) {
 	panic(fmt.Errorf("not implemented: DeleteMessage - deleteMessage"))
 }
 

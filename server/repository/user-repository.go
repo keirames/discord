@@ -19,7 +19,9 @@ func (ur userRepo) FindByID(id string) (*entities.User, error) {
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
-	utils.Throw(err)
+	if err != nil {
+		return nil, err
+	}
 
 	var user entities.User
 	err = db.Q.Get(&user, sql, args...)

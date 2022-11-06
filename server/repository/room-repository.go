@@ -86,3 +86,66 @@ func (rr roomRepo) CreateRoom(userID string, title string, memberIds []string) (
 		Title: title,
 	}, nil
 }
+
+func (rr roomRepo) FindByIDIncludeMembers(roomId string) (*entities.Room, error) {
+	sql, args, err :=
+		sq.
+			Select(`rooms.*, u.id as "user.id", u.name as "user.name"`).
+			From("rooms").
+			InnerJoin("room_members rm on rm.room_id = rooms.id").
+			InnerJoin("users u on rm.user_id = u.id").
+			Where(sq.Eq{"rooms.id": roomId}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var room entities.Room
+
+	rows, err := db.Q.Queryx(sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		type roomRow struct {
+			ID       uint   `db:"id"`
+			Title    string `db:"title"`
+			UserID   uint   `db:"user.id"`
+			UserName string `db:"user.name"`
+		}
+
+		var rr roomRow
+		err = rows.StructScan(&rr)
+		if err != nil {
+			return nil, err
+		}
+
+		room.ID = rr.ID
+		room.Title = rr.Title
+		room.Users = append(room.Users, entities.User{ID: rr.UserID, Name: rr.UserName})
+	}
+
+	return &room, nil
+}
+
+func (rr roomRepo) AddMember(roomID string, userID string) error {
+	sql, args, err :=
+		sq.
+			Insert("room_members").
+			Columns("user_id", "room_id").
+			Values(userID, roomID).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Q.Exec(sql, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

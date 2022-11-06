@@ -82,9 +82,9 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateRoom(ctx context.Context, input model.NewRoom) (*model.Room, error)
 	SendMessage(ctx context.Context, input model.SendMessageInput) (*model.Message, error)
-	AddMember(ctx context.Context, userID string, roomID string) (string, error)
-	KickMember(ctx context.Context, userID string, roomID string) (string, error)
-	DeleteMessage(ctx context.Context, messageID string) (string, error)
+	AddMember(ctx context.Context, userID string, roomID string) (*model.User, error)
+	KickMember(ctx context.Context, userID string, roomID string) (*model.User, error)
+	DeleteMessage(ctx context.Context, messageID string) (*model.Message, error)
 	SignIn(ctx context.Context, name string) (string, error)
 }
 type QueryResolver interface {
@@ -387,9 +387,9 @@ type Query {
 type Mutation {
   createRoom(input: NewRoom!): Room! @auth
   sendMessage(input: SendMessageInput!): Message! @auth
-  addMember(userId: String!, roomId: String!): String! @auth
-  kickMember(userId: String!, roomId: String!): String! @auth
-  deleteMessage(messageId: String!): String! @auth
+  addMember(userId: String!, roomId: String!): User! @auth
+  kickMember(userId: String!, roomId: String!): User! @auth
+  deleteMessage(messageId: String!): Message! @auth
   signIn(name: String!): String!
 }
 `, BuiltIn: false},
@@ -969,10 +969,10 @@ func (ec *executionContext) _Mutation_addMember(ctx context.Context, field graph
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*model.User); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *squirrel/graph/model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -984,9 +984,9 @@ func (ec *executionContext) _Mutation_addMember(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖsquirrelᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_addMember(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -996,7 +996,13 @@ func (ec *executionContext) fieldContext_Mutation_addMember(ctx context.Context,
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	defer func() {
@@ -1044,10 +1050,10 @@ func (ec *executionContext) _Mutation_kickMember(ctx context.Context, field grap
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*model.User); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *squirrel/graph/model.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1059,9 +1065,9 @@ func (ec *executionContext) _Mutation_kickMember(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.User)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖsquirrelᚋgraphᚋmodelᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_kickMember(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1071,7 +1077,13 @@ func (ec *executionContext) fieldContext_Mutation_kickMember(ctx context.Context
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "name":
+				return ec.fieldContext_User_name(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
 		},
 	}
 	defer func() {
@@ -1119,10 +1131,10 @@ func (ec *executionContext) _Mutation_deleteMessage(ctx context.Context, field g
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*model.Message); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *squirrel/graph/model.Message`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1134,9 +1146,9 @@ func (ec *executionContext) _Mutation_deleteMessage(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.Message)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNMessage2ᚖsquirrelᚋgraphᚋmodelᚐMessage(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_deleteMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1146,7 +1158,17 @@ func (ec *executionContext) fieldContext_Mutation_deleteMessage(ctx context.Cont
 		IsMethod:   true,
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Message_id(ctx, field)
+			case "text":
+				return ec.fieldContext_Message_text(ctx, field)
+			case "userId":
+				return ec.fieldContext_Message_userId(ctx, field)
+			case "user":
+				return ec.fieldContext_Message_user(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
 		},
 	}
 	defer func() {
@@ -4497,6 +4519,10 @@ func (ec *executionContext) marshalNString2ᚕstringᚄ(ctx context.Context, sel
 	}
 
 	return ret
+}
+
+func (ec *executionContext) marshalNUser2squirrelᚋgraphᚋmodelᚐUser(ctx context.Context, sel ast.SelectionSet, v model.User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNUser2ᚕᚖsquirrelᚋgraphᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
