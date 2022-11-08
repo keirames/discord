@@ -10,6 +10,7 @@ import (
 	"squirrel/db/entities"
 	"squirrel/graph/generated"
 	"squirrel/graph/model"
+	kafkaRepo "squirrel/kafka_repo"
 	"squirrel/middlewares"
 	"squirrel/repository"
 	"squirrel/service"
@@ -66,6 +67,8 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 	if err != nil {
 		return nil, utils.UserInputError()
 	}
+
+	kafkaRepo.KafkaService.SendMessage([]byte(fmt.Sprintf("{roomID: %v, msg: %v}", input.RoomID, input.Text)))
 
 	return &model.Message{
 		ID:     msgID,
