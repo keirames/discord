@@ -117,6 +117,8 @@ func (r *mutationResolver) AddMember(ctx context.Context, userID string, roomID 
 		return nil, utils.UserInputError()
 	}
 
+	kafkaRepo.MemberAddedProducer(roomID, userID)
+
 	newMemberModel := entities.MapUserToModel(*newMember)
 	return &newMemberModel, nil
 }

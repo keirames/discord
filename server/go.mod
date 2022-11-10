@@ -30,6 +30,7 @@ require (
 require (
 	github.com/Masterminds/squirrel v1.5.3
 	github.com/go-chi/chi v1.5.4
+	github.com/goccy/go-json v0.9.11
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/gorilla/websocket v1.5.0
 	github.com/jmoiron/sqlx v1.3.5
