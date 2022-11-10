@@ -25,7 +25,8 @@ func GenerateJwt(ctx context.Context, userID string) (string, error) {
 		},
 	})
 
-	token, err := t.SignedString(jwtSecret)
+	fmt.Println([]byte(config.JWT_SECRET))
+	token, err := t.SignedString([]byte(config.JWT_SECRET))
 	if err != nil {
 		return "", err
 	}
@@ -40,6 +41,6 @@ func ValidateJwt(ctx context.Context, token string) (*jwt.Token, error) {
 			return nil, fmt.Errorf("there's a problem with the signing method")
 		}
 
-		return jwtSecret, nil
+		return []byte(config.JWT_SECRET), nil
 	})
 }

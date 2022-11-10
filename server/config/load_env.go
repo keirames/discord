@@ -11,8 +11,8 @@ var EnvMap = map[string]string{
 	"JWT_SECRET": "JWT_SECRET",
 }
 
-var PORT = os.Getenv("PORT")
-var JWT_SECRET = os.Getenv("JWT_SECRET")
+var PORT string
+var JWT_SECRET string
 
 func checkExist(key string) {
 	data := os.Getenv(key)
@@ -33,6 +33,9 @@ func LoadEnv() {
 	if err != nil {
 		panic("Error loading .env file")
 	}
+
+	PORT = os.Getenv("PORT")
+	JWT_SECRET = os.Getenv("JWT_SECRET")
 
 	for _, env := range EnvMap {
 		checkExist(env)

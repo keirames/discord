@@ -2,6 +2,7 @@ package kafkaRepo
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"time"
 
@@ -10,22 +11,29 @@ import (
 
 type kafkaService struct{}
 
+var kafkaConn *kafka.Conn
+
 var KafkaService = &kafkaService{}
 
-func (ks kafkaService) SendMessage(msg []byte) {
+func (ks kafkaService) Connect() {
 	conn, err := kafka.DialLeader(context.Background(), "tcp", "localhost:9092", "chat", 0)
 	if err != nil {
 		log.Fatal("failed to dial leader:", err)
 	}
+	kafkaConn = conn
+}
 
-	conn.SetWriteDeadline(time.Now().Add(10 * time.Second))
+func (ks kafkaService) SendMessage(msg map[string]string) {
+	kafkaConn.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
-	_, err = conn.WriteMessages(kafka.Message{Value: msg})
+	jsonMsg, _ := json.Marshal(msg)
+
+	_, err := kafkaConn.WriteMessages(kafka.Message{Value: jsonMsg})
 	if err != nil {
 		log.Fatal("failed to write messages:", err)
 	}
 
-	if err := conn.Close(); err != nil {
-		log.Fatal("failed to close writer:", err)
-	}
+	// if err := kafkaConn.Close(); err != nil {
+	// 	log.Fatal("failed to close writer:", err)
+	// }
 }

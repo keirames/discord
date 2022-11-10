@@ -68,7 +68,11 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 		return nil, utils.UserInputError()
 	}
 
-	kafkaRepo.KafkaService.SendMessage([]byte(fmt.Sprintf("{roomID: %v, msg: %v}", input.RoomID, input.Text)))
+	kafkaRepo.KafkaService.SendMessage(map[string]string{
+		"userID": utils.UintToString(user.ID),
+		"roomID": input.RoomID,
+		"msg":    input.Text,
+	})
 
 	return &model.Message{
 		ID:     msgID,

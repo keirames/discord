@@ -9,6 +9,7 @@ import (
 	"squirrel/directives"
 	"squirrel/graph"
 	"squirrel/graph/generated"
+	kafkaRepo "squirrel/kafka_repo"
 	"squirrel/middlewares"
 
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -79,6 +80,7 @@ func main() {
 	port := os.Getenv("PORT")
 
 	db.ConnectDB()
+	kafkaRepo.KafkaService.Connect()
 
 	router := chi.NewRouter()
 
