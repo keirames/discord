@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"squirrel/topics"
 
 	"github.com/goccy/go-json"
 	"github.com/segmentio/kafka-go"
@@ -38,13 +39,38 @@ func SendMessage(topic string, msg string) {
 	}
 }
 
+func SendMessages(topic string, msgs []string) {
+	if w == nil {
+		createWriter()
+	}
+
+	kafkaMessages := make([]kafka.Message, len(msgs))
+	for idx, msg := range msgs {
+		// TODO: what is key ?
+		kafkaMessages[idx] = kafka.Message{
+			Topic: topic,
+			Key:   []byte("random"),
+			Value: []byte(msg),
+		}
+	}
+
+	err := w.WriteMessages(
+		context.Background(),
+		kafkaMessages...,
+	)
+
+	if err != nil {
+		log.Fatal("failed to write messages:", err)
+	}
+}
+
 type memberAddedEvent struct {
 	RoomID string `json:"roomID"`
 	UserID string `json:"userID"`
 }
 
 func MemberAddedProducer(roomID string, userID string) {
-	const topic = "member-added"
+	topic := topics.MemberAdded
 
 	rawJson, err := json.Marshal(&memberAddedEvent{roomID, userID})
 	if err != nil {
@@ -53,4 +79,17 @@ func MemberAddedProducer(roomID string, userID string) {
 	}
 
 	SendMessage(topic, string(rawJson))
+}
+
+func MembersAddedProducer(roomID string, userIDs []string) {
+	topic := topics.MemberAdded
+
+	rawJsonList := make([]string, len(userIDs))
+
+	for idx, userID := range userIDs {
+		rawJson, _ := json.Marshal(&memberAddedEvent{roomID, userID})
+		rawJsonList[idx] = string(rawJson)
+	}
+
+	SendMessages(topic, rawJsonList)
 }

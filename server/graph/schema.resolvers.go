@@ -39,6 +39,8 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 		return nil, utils.UserInputError()
 	}
 
+	kafkaRepo.MembersAddedProducer(utils.UintToString(room.ID), memberIDs)
+
 	return entities.MapRoomToModel(*room), nil
 }
 
