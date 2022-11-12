@@ -63,8 +63,15 @@ export const main = async () => {
   const httpServer = createServer();
   const io = new Server(httpServer);
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const token = socket.handshake.query?.token;
+    const roomID = socket.handshake.query?.roomID;
+
+    if (typeof roomID != 'string') {
+      next(new AuthenticationError());
+      return;
+    }
+
     if (typeof token != 'string') {
       next(new AuthenticationError());
       return;
@@ -72,9 +79,18 @@ export const main = async () => {
 
     try {
       const decoded = verify(token, secret);
-      console.log(decoded);
+
+      const userID = (decoded as any).id;
+
+      const isExisted = await prismaClient.roomMembers.findUnique({
+        where: { userID_roomID: { userID, roomID } },
+      });
+
+      if (!isExisted) {
+        next(new AuthenticationError());
+        return;
+      }
     } catch (err) {
-      console.log(err);
       next(new AuthenticationError());
       return;
     }
