@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -70,6 +71,7 @@ export type NewRoom = {
 
 export type Query = {
   __typename?: 'Query';
+  friends: Array<User>;
   messages: Array<Message>;
   room: Room;
   rooms: Array<Room>;
@@ -102,3 +104,17 @@ export type User = {
   id: Scalars['ID'];
   name: Scalars['String'];
 };
+
+export type AllFriendsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllFriendsQuery = { __typename?: 'Query', friends: Array<{ __typename?: 'User', id: string, name: string }> };
+
+export type AllRoomsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type AllRoomsQuery = { __typename?: 'Query', rooms: Array<{ __typename?: 'Room', id: string, title?: string | null }> };
+
+
+export const AllFriendsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"allFriends"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"friends"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"name"}}]}}]}}]} as unknown as DocumentNode<AllFriendsQuery, AllFriendsQueryVariables>;
+export const AllRoomsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"allRooms"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"rooms"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}}]}}]}}]} as unknown as DocumentNode<AllRoomsQuery, AllRoomsQueryVariables>;

@@ -30,6 +30,7 @@ type Query {
   rooms: [Room!]!
   room(id: ID!): Room!
   messages(roomId: String!): [Message!]!
+  friends: [User!]!
 }
 
 type Mutation {
