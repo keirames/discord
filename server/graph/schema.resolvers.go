@@ -214,34 +214,72 @@ func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error) {
 	sql, args, err :=
 		sq.
-			Select(`rooms.*, u.id as "user.id", u.name as "user.name"`).
+			Select(
+				`
+				rooms.*,
+				u.id as "user.id",
+				u.name as "user.name",
+				m.id as "message.id",
+				m.text as "message.text",
+				m.user_id as "message.user_id"
+				`,
+			).
 			From("rooms").
 			InnerJoin("room_members rm on rm.room_id = rooms.id").
 			InnerJoin("users u on rm.user_id = u.id").
+			LeftJoin("messages m on rooms.id = m.room_id").
 			Where(sq.Eq{"rooms.id": id}).
 			PlaceholderFormat(sq.Dollar).
 			ToSql()
-	utils.Throw(err)
-	fmt.Println(sql)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
 
 	rows, err := db.Q.Queryx(sql, args...)
-	utils.Throw(err)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
 
 	var room entities.Room
+
+	usersMap := map[uint]bool{}
+	messagesMap := map[uint]bool{}
+
 	for rows.Next() {
-		type roomRow struct {
-			ID       uint   `db:"id"`
-			Title    string `db:"title"`
-			UserID   uint   `db:"user.id"`
-			UserName string `db:"user.name"`
+		type row struct {
+			ID            uint   `db:"id"`
+			Title         string `db:"title"`
+			UserID        uint   `db:"user.id"`
+			UserName      string `db:"user.name"`
+			MessageID     uint   `db:"message.id"`
+			Text          string `db:"message.text"`
+			MessageUserID uint   `db:"message.user_id"`
 		}
 
-		var rr roomRow
-		utils.Throw(rows.StructScan(&rr))
+		var r row
+		err := rows.StructScan(&r)
+		if err != nil {
+			return nil, utils.UserInputError()
+		}
 
-		room.ID = rr.ID
-		room.Title = rr.Title
-		room.Users = append(room.Users, entities.User{ID: rr.UserID, Name: rr.UserName})
+		room.ID = r.ID
+		room.Title = r.Title
+
+		_, ok := usersMap[r.UserID]
+		if !ok {
+			usersMap[r.UserID] = true
+			room.Users = append(room.Users, entities.User{ID: r.UserID, Name: r.UserName})
+		}
+
+		_, ok = messagesMap[r.MessageID]
+		if !ok {
+			messagesMap[r.MessageID] = true
+			room.Messages = append(room.Messages, entities.Message{
+				ID:     r.MessageID,
+				Text:   r.Text,
+				UserID: r.MessageUserID,
+			})
+		}
 	}
 
 	return entities.MapRoomToModel(room), nil

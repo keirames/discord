@@ -8,6 +8,7 @@ type Room {
   id: ID!
   title: String
   members: [User!]!
+  messages: [Message!]!
 }
 
 type Message {

@@ -17,7 +17,6 @@ require (
 	github.com/mitchellh/mapstructure v1.3.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
-	github.com/segmentio/kafka-go v0.4.36 // indirect
 	github.com/urfave/cli/v2 v2.8.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	golang.org/x/mod v0.6.0 // indirect
@@ -36,5 +35,6 @@ require (
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.7
+	github.com/segmentio/kafka-go v0.4.36
 	golang.org/x/exp v0.0.0-20221106115401-f9659909a136
 )

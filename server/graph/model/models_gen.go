@@ -15,9 +15,10 @@ type NewRoom struct {
 }
 
 type Room struct {
-	ID      string  `json:"id"`
-	Title   *string `json:"title"`
-	Members []*User `json:"members"`
+	ID       string     `json:"id"`
+	Title    *string    `json:"title"`
+	Members  []*User    `json:"members"`
+	Messages []*Message `json:"messages"`
 }
 
 type SendMessageInput struct {
