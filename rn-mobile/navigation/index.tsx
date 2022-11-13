@@ -75,7 +75,7 @@ const TabChatStack = createNativeStackNavigator<TabChatStackParamList>();
 
 const TabChatNavigator = () => {
   return (
-    <TabChatStack.Navigator screenOptions={{ headerShown: false }}>
+    <TabChatStack.Navigator>
       <TabChatStack.Screen name="Chat" component={TabChatScreen} />
       <TabChatStack.Screen name="ChatDetail" component={TabChatDetailScreen} />
     </TabChatStack.Navigator>
@@ -129,7 +129,11 @@ function BottomTabNavigator() {
         //   tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
         // }}
       />
-      <BottomTab.Screen name="TabChat" component={TabChatNavigator} />
+      <BottomTab.Screen
+        name="TabChat"
+        component={TabChatNavigator}
+        options={{ headerShown: false }}
+      />
     </BottomTab.Navigator>
   );
 }
@@ -141,5 +145,5 @@ function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
   color: string;
 }) {
-  return <FontAwesome size={30} style={{ marginBottom: -3 }} {...props} />;
+  return <FontAwesome size={30} style={{ marginTop: -3 }} {...props} />;
 }

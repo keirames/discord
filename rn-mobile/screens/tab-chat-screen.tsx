@@ -3,6 +3,7 @@ import React from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import FriendList from 'src/modules/friends/friend-list';
 import RoomList from 'src/modules/rooms/room-list';
+import { Colors } from 'react-native-ui-lib';
 
 const TabChatScreen = () => {
   return (
@@ -18,6 +19,7 @@ const TabChatScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.white,
   },
 });
 

@@ -7,24 +7,31 @@ import useRooms from 'src/modules/rooms/useRooms';
 import { EvilIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import { TabChatScreenNavigationProps } from '../../../types';
 
 interface Props {
-  title: string;
+  id: string;
 }
 
 const RoomPipe: React.FC<Props> = (props) => {
-  const { title: name } = props;
+  const { id } = props;
 
-  const { navigate } = useNavigation();
+  const { rooms } = useRooms();
+
+  const { navigate } = useNavigation<TabChatScreenNavigationProps>();
+
+  const room = rooms.find((room) => room.id === id);
+
+  if (!room) return null;
 
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={() => navigate('ChatDetail')}
+      onPress={() => navigate('ChatDetail', { roomID: room.id })}
     >
       <Avatar />
       <View style={styles.content}>
-        <Text style={styles.title}>{name}</Text>
+        <Text style={styles.title}>{room.title}</Text>
         <Text style={styles.lastMsg} numberOfLines={1} ellipsizeMode="tail">
           Last message and it very long lorem wed w e f we f wwoijw ef w ef wef
           we fwef we f we fwe f t very long lorem wed w e f we f wwoijw ef w t
@@ -75,8 +82,8 @@ const RoomList = () => {
   return (
     <View>
       {rooms.map((room) => (
-        <View style={{ marginBottom: Spacings.s4 }}>
-          <RoomPipe title={room.title} />
+        <View key={room.id} style={{ marginTop: Spacings.s4 }}>
+          <RoomPipe id={room.id} />
         </View>
       ))}
     </View>

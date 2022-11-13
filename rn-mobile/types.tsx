@@ -8,7 +8,10 @@ import {
   CompositeScreenProps,
   NavigatorScreenParams,
 } from '@react-navigation/native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import {
+  NativeStackNavigationProp,
+  NativeStackScreenProps,
+} from '@react-navigation/native-stack';
 
 declare global {
   namespace ReactNavigation {
@@ -20,13 +23,15 @@ export type RootStackParamList = {
   Root: NavigatorScreenParams<RootTabParamList> | undefined;
   Modal: undefined;
   NotFound: undefined;
-  ChatDetail: undefined;
 };
 
 export type TabChatStackParamList = {
   Chat: undefined;
-  ChatDetail: undefined;
+  ChatDetail: { roomID: string };
 };
+
+export type TabChatScreenNavigationProps =
+  NativeStackNavigationProp<TabChatStackParamList>;
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> =
   NativeStackScreenProps<RootStackParamList, Screen>;
