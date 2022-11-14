@@ -23,6 +23,8 @@ export type RootStackParamList = {
   Root: NavigatorScreenParams<RootTabParamList> | undefined;
   Modal: undefined;
   NotFound: undefined;
+  // TODO: remove when restructure app stack
+  ChatDetail: { roomID: string };
 };
 
 export type TabChatStackParamList = {

@@ -55,7 +55,7 @@ const useRoom = () => {
           },
           {
             id: '6',
-            text: 'hi',
+            text: 'hi how are you ?',
             userId: '1',
           },
           {
@@ -65,7 +65,7 @@ const useRoom = () => {
           },
           {
             id: '8',
-            text: 'hi',
+            text: 'This is a super long text and should go multiple line, This is a super long text and should go multiple line, This is a super long text and should go multiple line',
             userId: '1',
           },
           {
@@ -91,7 +91,7 @@ const useRoom = () => {
           {
             id: '13',
             text: 'hi',
-            userId: '1',
+            userId: '2',
           },
           {
             id: '14',
@@ -101,12 +101,12 @@ const useRoom = () => {
           {
             id: '15',
             text: 'hi',
-            userId: '1',
+            userId: '2',
           },
           {
             id: '16',
             text: 'hi',
-            userId: '1',
+            userId: '2',
           },
           {
             id: '17',
