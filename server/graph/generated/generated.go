@@ -57,6 +57,7 @@ type ComplexityRoot struct {
 		CreateRoom    func(childComplexity int, input model.NewRoom) int
 		DeleteMessage func(childComplexity int, messageID string) int
 		KickMember    func(childComplexity int, userID string, roomID string) int
+		Seen          func(childComplexity int, roomID string, messages []string) int
 		SendMessage   func(childComplexity int, input model.SendMessageInput) int
 		SignIn        func(childComplexity int, name string) int
 	}
@@ -83,6 +84,7 @@ type ComplexityRoot struct {
 type MutationResolver interface {
 	CreateRoom(ctx context.Context, input model.NewRoom) (*model.Room, error)
 	SendMessage(ctx context.Context, input model.SendMessageInput) (*model.Message, error)
+	Seen(ctx context.Context, roomID string, messages []string) ([]string, error)
 	AddMember(ctx context.Context, userID string, roomID string) (*model.User, error)
 	KickMember(ctx context.Context, userID string, roomID string) (*model.User, error)
 	DeleteMessage(ctx context.Context, messageID string) (*model.Message, error)
@@ -184,6 +186,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.KickMember(childComplexity, args["userId"].(string), args["roomId"].(string)), true
+
+	case "Mutation.seen":
+		if e.complexity.Mutation.Seen == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_seen_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Seen(childComplexity, args["roomId"].(string), args["messages"].([]string)), true
 
 	case "Mutation.sendMessage":
 		if e.complexity.Mutation.SendMessage == nil {
@@ -396,6 +410,7 @@ type Query {
 type Mutation {
   createRoom(input: NewRoom!): Room! @auth
   sendMessage(input: SendMessageInput!): Message! @auth
+  seen(roomId: ID!, messages: [String!]!): [String!]! @auth
   addMember(userId: String!, roomId: String!): User! @auth
   kickMember(userId: String!, roomId: String!): User! @auth
   deleteMessage(messageId: String!): Message! @auth
@@ -484,6 +499,30 @@ func (ec *executionContext) field_Mutation_kickMember_args(ctx context.Context, 
 		}
 	}
 	args["roomId"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_seen_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["roomId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("roomId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["roomId"] = arg0
+	var arg1 []string
+	if tmp, ok := rawArgs["messages"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("messages"))
+		arg1, err = ec.unmarshalNString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["messages"] = arg1
 	return args, nil
 }
 
@@ -943,6 +982,81 @@ func (ec *executionContext) fieldContext_Mutation_sendMessage(ctx context.Contex
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_sendMessage_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_seen(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_seen(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().Seen(rctx, fc.Args["roomId"].(string), fc.Args["messages"].([]string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Auth == nil {
+				return nil, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]string); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []string`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalNString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_seen(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_seen_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -3832,6 +3946,15 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_sendMessage(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "seen":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_seen(ctx, field)
 			})
 
 			if out.Values[i] == graphql.Null {

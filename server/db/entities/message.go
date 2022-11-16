@@ -2,14 +2,13 @@ package entities
 
 import (
 	"squirrel/graph/model"
-	"squirrel/utils"
 )
 
 type Message struct {
-	ID     uint   `db:"id"`
+	ID     string `db:"id"`
 	Text   string `db:"text"`
-	RoomID uint   `db:"room_id"`
-	UserID uint   `db:"user_id"`
+	RoomID string `db:"room_id"`
+	UserID string `db:"user_id"`
 	User   User   `db:"user"`
 }
 
@@ -17,9 +16,9 @@ func MapMessageToModel(message Message) *model.Message {
 	user := MapUserToModel(message.User)
 
 	return &model.Message{
-		ID:     utils.UintToString(message.ID),
+		ID:     message.ID,
 		Text:   message.Text,
-		UserID: utils.UintToString(message.UserID),
+		UserID: message.UserID,
 		User:   &user,
 	}
 }

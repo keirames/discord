@@ -4,7 +4,6 @@ import (
 	"squirrel/db"
 	"squirrel/db/entities"
 	"squirrel/utils"
-	"strconv"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -79,10 +78,8 @@ func (rr roomRepo) CreateRoom(userID string, title string, memberIds []string) (
 	_, err = db.Q.Exec(sql, args...)
 	utils.Throw(err)
 
-	roomIDUint, _ := strconv.ParseUint(roomID, 10, 64)
-
 	return &entities.Room{
-		ID:    uint(roomIDUint),
+		ID:    roomID,
 		Title: title,
 	}, nil
 }
@@ -110,9 +107,9 @@ func (rr roomRepo) FindByIDIncludeMembers(roomId string) (*entities.Room, error)
 
 	for rows.Next() {
 		type roomRow struct {
-			ID       uint   `db:"id"`
+			ID       string `db:"id"`
 			Title    string `db:"title"`
-			UserID   uint   `db:"user.id"`
+			UserID   string `db:"user.id"`
 			UserName string `db:"user.name"`
 		}
 
@@ -148,4 +145,34 @@ func (rr roomRepo) AddMember(roomID string, userID string) error {
 	}
 
 	return nil
+}
+
+func (rr roomRepo) FindMemberInRoom(roomID string, userID string) (*string, error) {
+	sql, args, err :=
+		sq.
+			Select("*").
+			From("room_members").
+			Where(sq.Eq{"room_members.user_id": userID, "room_members.room_id": roomID}).
+			PlaceholderFormat(sq.Dollar).
+			ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	type row struct {
+		UserID string `db:"user_id"`
+		RoomID string `db:"room_id"`
+	}
+
+	var r row
+	err = db.Q.Get(&r, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	if r.UserID == "" {
+		return nil, nil
+	}
+
+	return &userID, nil
 }

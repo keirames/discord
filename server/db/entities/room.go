@@ -2,11 +2,10 @@ package entities
 
 import (
 	"squirrel/graph/model"
-	"squirrel/utils"
 )
 
 type Room struct {
-	ID       uint      `db:"id"`
+	ID       string    `db:"id"`
 	Title    string    `db:"title"`
 	Users    []User    `db:"user"`
 	Messages []Message `db:"message"`
@@ -14,7 +13,7 @@ type Room struct {
 
 func MapRoomToModel(r Room) *model.Room {
 	return &model.Room{
-		ID:       utils.UintToString(r.ID),
+		ID:       r.ID,
 		Title:    &r.Title,
 		Members:  MapUsersToModel(r.Users),
 		Messages: MapMessagesToModel(r.Messages),

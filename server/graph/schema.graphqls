@@ -42,6 +42,7 @@ type Query {
 type Mutation {
   createRoom(input: NewRoom!): Room! @auth
   sendMessage(input: SendMessageInput!): Message! @auth
+  seen(roomId: ID!, messages: [String!]!): [String!]! @auth
   addMember(userId: String!, roomId: String!): User! @auth
   kickMember(userId: String!, roomId: String!): User! @auth
   deleteMessage(messageId: String!): Message! @auth

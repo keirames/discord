@@ -65,8 +65,8 @@ func SendMessages(topic string, msgs []string) {
 }
 
 type memberAddedEvent struct {
-	RoomID string `json:"roomID"`
-	UserID string `json:"userID"`
+	RoomID string `json:"roomId"`
+	UserID string `json:"userId"`
 }
 
 func MemberAddedProducer(roomID string, userID string) {

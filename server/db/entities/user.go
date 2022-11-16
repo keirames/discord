@@ -2,17 +2,16 @@ package entities
 
 import (
 	"squirrel/graph/model"
-	"squirrel/utils"
 )
 
 type User struct {
-	ID   uint   `db:"id"`
+	ID   string `db:"id"`
 	Name string `db:"name"`
 }
 
 func MapUserToModel(u User) model.User {
 	return model.User{
-		ID:   utils.UintToString(u.ID),
+		ID:   u.ID,
 		Name: u.Name,
 	}
 }

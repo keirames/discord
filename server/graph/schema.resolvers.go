@@ -34,12 +34,12 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 		return nil, utils.UserInputError()
 	}
 
-	room, err := repository.RoomRepo.CreateRoom(utils.UintToString(user.ID), input.Title, memberIDs)
+	room, err := repository.RoomRepo.CreateRoom(user.ID, input.Title, memberIDs)
 	if err != nil {
 		return nil, utils.UserInputError()
 	}
 
-	kafkaRepo.MembersAddedProducer(utils.UintToString(room.ID), memberIDs)
+	kafkaRepo.MembersAddedProducer(room.ID, memberIDs)
 
 	return entities.MapRoomToModel(*room), nil
 }
@@ -71,16 +71,49 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 	}
 
 	kafkaRepo.KafkaService.SendMessage(map[string]string{
-		"userID": utils.UintToString(user.ID),
-		"roomID": input.RoomID,
+		"userId": user.ID,
+		"roomId": input.RoomID,
 		"msg":    input.Text,
 	})
 
 	return &model.Message{
 		ID:     msgID,
 		Text:   input.Text,
-		UserID: utils.UintToString(user.ID),
+		UserID: user.ID,
 	}, nil
+}
+
+// Seen is the resolver for the seen field.
+func (r *mutationResolver) Seen(ctx context.Context, roomID string, messages []string) ([]string, error) {
+	user := middlewares.GetUser(ctx)
+
+	isExist, err := repository.RoomRepo.FindMemberInRoom("0be9da29-d3ac-49d6-b177-6cbab13a9139", "4a273821-89ce-41f3-a5db-dde6ab757ad9")
+	if err != nil || isExist == nil {
+		return nil, utils.UserInputError()
+	}
+
+	// TODO: is all messages exist ?
+
+	sb :=
+		sq.
+			StatementBuilder.
+			Insert("seen_members").
+			Columns("user_id", "room_id", "message_id")
+	for _, messageID := range messages {
+		sb.Values(user.ID, roomID, messageID)
+	}
+
+	sql, args, err := sb.PlaceholderFormat(sq.Dollar).ToSql()
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	_, err = db.Q.Exec(sql, args...)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	return messages, nil
 }
 
 // AddMember is the resolver for the addMember field.
@@ -114,7 +147,7 @@ func (r *mutationResolver) AddMember(ctx context.Context, userID string, roomID 
 		return &newMemberModel, nil
 	}
 
-	err = repository.RoomRepo.AddMember(roomID, utils.UintToString(newMember.ID))
+	err = repository.RoomRepo.AddMember(roomID, newMember.ID)
 	if err != nil {
 		return nil, utils.UserInputError()
 	}
@@ -142,7 +175,7 @@ func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, err
 		return "", utils.UserInputError()
 	}
 
-	token, err := service.GenerateJwt(ctx, utils.UintToString(user.ID))
+	token, err := service.GenerateJwt(ctx, user.ID)
 	if err != nil {
 		return "", utils.UserInputError()
 	}
@@ -172,9 +205,9 @@ func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 	for rows.Next() {
 		// specific struct
 		type roomRow struct {
-			ID       uint   `db:"id"`
+			ID       string `db:"id"`
 			Title    string `db:"title"`
-			UserID   uint   `db:"user.id"`
+			UserID   string `db:"user.id"`
 			UserName string `db:"user.name"`
 		}
 		var rr roomRow
@@ -242,18 +275,18 @@ func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error
 
 	var room entities.Room
 
-	usersMap := map[uint]bool{}
-	messagesMap := map[uint]bool{}
+	usersMap := map[string]bool{}
+	messagesMap := map[string]bool{}
 
 	for rows.Next() {
 		type row struct {
-			ID            uint   `db:"id"`
+			ID            string `db:"id"`
 			Title         string `db:"title"`
-			UserID        uint   `db:"user.id"`
+			UserID        string `db:"user.id"`
 			UserName      string `db:"user.name"`
-			MessageID     uint   `db:"message.id"`
+			MessageID     string `db:"message.id"`
 			Text          string `db:"message.text"`
-			MessageUserID uint   `db:"message.user_id"`
+			MessageUserID string `db:"message.user_id"`
 		}
 
 		var r row
