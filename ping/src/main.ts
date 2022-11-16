@@ -100,5 +100,6 @@ export const main = async () => {
     //
   });
 
+  console.log('ws://localhost:3003');
   httpServer.listen(3003);
 };
