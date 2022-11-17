@@ -187,6 +187,15 @@ func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, err
 	return token, nil
 }
 
+// Me is the resolver for the me field.
+func (r *queryResolver) Me(ctx context.Context) (*model.User, error) {
+	user := middlewares.GetUser(ctx)
+
+	userModel := entities.MapUserToModel(*user)
+
+	return &userModel, nil
+}
+
 // Rooms is the resolver for the rooms field.
 func (r *queryResolver) Rooms(ctx context.Context) ([]*model.Room, error) {
 	sql, _, err :=
