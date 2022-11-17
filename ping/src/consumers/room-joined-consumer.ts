@@ -1,16 +1,19 @@
 import { EachMessageHandler } from 'kafkajs';
 import { getKafka } from '../events/kafka';
+import { Topics } from '../types';
 
-export class JoinedRoomConsumer {
-  topic = 'joined-room';
+const GROUP_ID = 'room_joined_events_group';
+
+export class RoomJoinedConsumer {
+  topic = Topics.ROOM_JOINED;
 
   async eachMessage(handler: EachMessageHandler) {
     const consumer = getKafka().consumer({
-      groupId: 'joined-room-events-group',
+      groupId: GROUP_ID,
     });
 
     await consumer.connect();
-    await consumer.subscribe({ topic: 'joined-room' });
+    await consumer.subscribe({ topic: this.topic });
     await consumer.run({
       eachMessage: handler,
     });

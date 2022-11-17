@@ -1,12 +1,9 @@
 import { createServer } from 'http';
-import { sign, verify } from 'jsonwebtoken';
-import { Kafka } from 'kafkajs';
 import { Server } from 'socket.io';
-import { JoinedRoomConsumer } from './consumers/joined-room-consumer';
+import { runMessageSentConsumer } from './consumers/message-sent-consumer';
+import { RoomJoinedConsumer } from './consumers/room-joined-consumer';
 import { prismaClient } from './db/prisma-client';
-
-// TODO: hide this
-const secret = 'secret';
+import { authMiddleware } from './middlewares';
 
 // const kafka = new Kafka({
 //   clientId: 'socket-chat-events',
@@ -31,72 +28,35 @@ const secret = 'secret';
 //   },
 // });
 
-class AuthenticationError extends Error {
-  constructor() {
-    super('Authentication Error');
-  }
-}
-
 interface JoinedRoomMsg {
   roomID: string;
   userID: string;
 }
 
 export const main = async () => {
-  new JoinedRoomConsumer().eachMessage(async ({ message }) => {
-    const msgBuffer = message.value;
-    if (!msgBuffer) return;
+  // new RoomJoinedConsumer().eachMessage(async ({ message }) => {
+  //   const msgBuffer = message.value;
+  //   if (!msgBuffer) return;
 
-    const msgJson: JoinedRoomMsg = JSON.parse(msgBuffer.toString());
-    const { roomID, userID } = msgJson;
+  //   const msgJson: JoinedRoomMsg = JSON.parse(msgBuffer.toString());
+  //   const { roomID, userID } = msgJson;
 
-    const isExisted = await prismaClient.roomMembers.findUnique({
-      where: { userID_roomID: { roomID, userID } },
-    });
-    if (isExisted) return;
+  //   const isExisted = await prismaClient.roomMembers.findUnique({
+  //     where: { userID_roomID: { roomID, userID } },
+  //   });
+  //   if (isExisted) return;
 
-    await prismaClient.roomMembers.create({
-      data: { roomID: msgJson.roomID, userID: msgJson.userID },
-    });
-  });
+  //   await prismaClient.roomMembers.create({
+  //     data: { roomID: msgJson.roomID, userID: msgJson.userID },
+  //   });
+  // });
+
+  await runMessageSentConsumer();
 
   const httpServer = createServer();
   const io = new Server(httpServer);
 
-  io.use(async (socket, next) => {
-    const token = socket.handshake.query?.token;
-    const roomID = socket.handshake.query?.roomID;
-
-    if (typeof roomID != 'string') {
-      next(new AuthenticationError());
-      return;
-    }
-
-    if (typeof token != 'string') {
-      next(new AuthenticationError());
-      return;
-    }
-
-    try {
-      const decoded = verify(token, secret);
-
-      const userID = (decoded as any).id;
-
-      const isExisted = await prismaClient.roomMembers.findUnique({
-        where: { userID_roomID: { userID, roomID } },
-      });
-
-      if (!isExisted) {
-        next(new AuthenticationError());
-        return;
-      }
-    } catch (err) {
-      next(new AuthenticationError());
-      return;
-    }
-
-    next();
-  }).on('connection', (socket) => {
+  io.use(authMiddleware).on('connection', (socket) => {
     //
   });
 
