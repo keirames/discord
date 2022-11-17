@@ -8,9 +8,10 @@ import { DecodedTokenPayload } from './types';
 
 export const authMiddleware = async (
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-  next: (err?: ExtendedError | undefined) => void
+  next: (err?: ExtendedError | undefined) => void,
 ) => {
   const token = socket.handshake.query?.token;
+  // TODO: change to roomId
   const roomID = socket.handshake.query?.roomID;
 
   if (typeof roomID != 'string') {
@@ -28,7 +29,7 @@ export const authMiddleware = async (
     const decoded = verify(token, 'secret');
 
     // TODO: use type guard
-    const userID = (decoded as DecodedTokenPayload).id;
+    const userID = (decoded as DecodedTokenPayload).userID;
 
     const isExisted = await prismaClient.roomMembers.findUnique({
       where: { userID_roomID: { userID, roomID } },

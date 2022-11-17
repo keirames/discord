@@ -2,31 +2,8 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { runMessageSentConsumer } from './consumers/message-sent-consumer';
 import { RoomJoinedConsumer } from './consumers/room-joined-consumer';
-import { prismaClient } from './db/prisma-client';
 import { authMiddleware } from './middlewares';
-
-// const kafka = new Kafka({
-//   clientId: 'socket-chat-events',
-//   brokers: ['localhost:9092'],
-// });
-// const consumer = kafka.consumer({ groupId: 'chat-events-consumer-group' });
-
-// await consumer.connect();
-// await consumer.subscribe({ topic: 'chat' });
-
-// await consumer.run({
-//   eachMessage: async ({ topic, partition, message }) => {
-//     if (!message.value) {
-//       return;
-//     }
-
-//     const jsonRaw: { roomID: string; userID: string; msg: string } = JSON.parse(
-//       message.value.toString()
-//     );
-
-//     socket.emit(jsonRaw.roomID, JSON.stringify(jsonRaw));
-//   },
-// });
+import { getIO, initIOServer } from './socket-io';
 
 interface JoinedRoomMsg {
   roomID: string;
@@ -51,14 +28,16 @@ export const main = async () => {
   //   });
   // });
 
-  await runMessageSentConsumer();
-
   const httpServer = createServer();
-  const io = new Server(httpServer);
+  initIOServer(httpServer);
 
-  io.use(authMiddleware).on('connection', (socket) => {
-    //
-  });
+  getIO()
+    .use(authMiddleware)
+    .on('connection', (socket) => {
+      //
+    });
+
+  await runMessageSentConsumer();
 
   console.log('ws://localhost:3003');
   httpServer.listen(3003);

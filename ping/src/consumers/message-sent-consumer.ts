@@ -1,6 +1,7 @@
 import { Consumer } from 'kafkajs';
 import { prismaClient } from '../db/prisma-client';
 import { getKafka } from '../events/kafka';
+import { getIO } from '../socket-io';
 import { Topics } from '../types';
 
 const groupId = 'message_sent_events_group';
@@ -9,10 +10,8 @@ const topic = Topics.MESSAGE_SENT;
 interface TopicData {
   userId: string;
   roomId: string;
-  message: {
-    id: string;
-    text: string;
-  };
+  messageId: string;
+  messageText: string;
 }
 
 const getMessageSentConsumer = async (): Promise<Consumer> => {
@@ -35,7 +34,7 @@ export const runMessageSentConsumer = async () => {
 
       // TODO: is there any thing to check it ? guard ??
       const topicData: TopicData = JSON.parse(msgBuffer.toString());
-      console.log(topicData);
+
       const { roomId } = topicData;
 
       const roomMembers = await prismaClient.roomMembers.findMany({
@@ -43,11 +42,12 @@ export const runMessageSentConsumer = async () => {
       });
       if (roomMembers.length === 0) return;
 
-      const memberIds = roomMembers.map((roomMember) => roomMember.userID);
+      const memberIds = roomMembers
+        .map((roomMember) => roomMember.userID)
+        .filter((roomMember) => roomMember != topicData.userId);
 
       memberIds.map((id) => {
-        // TODO: socket send to user
-        console.log(id);
+        getIO().emit(id, JSON.stringify(topicData));
       });
     },
   });

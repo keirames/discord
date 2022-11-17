@@ -1,5 +1,5 @@
 export interface DecodedTokenPayload {
-  id: string;
+  userID: string;
 }
 
 export enum Topics {
