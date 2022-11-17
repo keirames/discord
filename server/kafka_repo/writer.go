@@ -93,3 +93,21 @@ func MembersAddedProducer(roomID string, userIDs []string) {
 
 	SendMessages(topic, rawJsonList)
 }
+
+type MessageSentEventParams struct {
+	RoomID      string `json:"roomId"`
+	UserID      string `json:"userId"`
+	MessageID   string `json:"messageId"`
+	MessageText string `json:"messageText"`
+}
+
+func MessageSentProducer(params MessageSentEventParams) {
+	topic := topics.MessageSent
+
+	rawJson, err := json.Marshal(params)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	SendMessage(topic, string(rawJson))
+}

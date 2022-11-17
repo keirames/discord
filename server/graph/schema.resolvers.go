@@ -70,10 +70,11 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 		return nil, utils.UserInputError()
 	}
 
-	kafkaRepo.KafkaService.SendMessage(map[string]string{
-		"userId": user.ID,
-		"roomId": input.RoomID,
-		"msg":    input.Text,
+	kafkaRepo.MessageSentProducer(kafkaRepo.MessageSentEventParams{
+		RoomID:      input.RoomID,
+		UserID:      user.ID,
+		MessageID:   msgID,
+		MessageText: input.Text,
 	})
 
 	return &model.Message{
