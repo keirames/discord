@@ -11,9 +11,9 @@ datasource db {
 }
 
 model RoomMembers {
-  userID String @default(uuid()) @map("user_id")
-  roomID String @default(uuid()) @map("room_id")
+  userId String @default(uuid()) @map("user_id")
+  roomId String @default(uuid()) @map("room_id")
 
-  @@id([userID, roomID])
+  @@id([userId, roomId])
   @@map("room_members")
 }

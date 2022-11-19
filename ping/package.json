@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@prisma/client": "^4.6.1",
+    "dotenv": "^16.0.3",
     "jsonwebtoken": "^8.5.1",
     "kafkajs": "^2.2.2",
     "socket.io": "^4.5.3"

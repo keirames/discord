@@ -38,12 +38,13 @@ export const runMessageSentConsumer = async () => {
       const { roomId } = topicData;
 
       const roomMembers = await prismaClient.roomMembers.findMany({
-        where: { roomID: roomId },
+        where: { roomId },
       });
       if (roomMembers.length === 0) return;
 
       const memberIds = roomMembers
-        .map((roomMember) => roomMember.userID)
+        .map((roomMember) => roomMember.userId)
+        // remove self
         .filter((roomMember) => roomMember != topicData.userId);
 
       memberIds.map((id) => {

@@ -2,15 +2,12 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { runMessageSentConsumer } from './consumers/message-sent-consumer';
 import { RoomJoinedConsumer } from './consumers/room-joined-consumer';
+import { checkEnv } from './load-env';
 import { authMiddleware } from './middlewares';
 import { getIO, initIOServer } from './socket-io';
 
-interface JoinedRoomMsg {
-  roomID: string;
-  userID: string;
-}
-
 export const main = async () => {
+  checkEnv();
   // new RoomJoinedConsumer().eachMessage(async ({ message }) => {
   //   const msgBuffer = message.value;
   //   if (!msgBuffer) return;
@@ -31,11 +28,7 @@ export const main = async () => {
   const httpServer = createServer();
   initIOServer(httpServer);
 
-  getIO()
-    .use(authMiddleware)
-    .on('connection', (socket) => {
-      //
-    });
+  getIO().use(authMiddleware);
 
   await runMessageSentConsumer();
 
