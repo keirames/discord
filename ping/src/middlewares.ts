@@ -7,7 +7,7 @@ import { getEnv } from './load-env';
 
 export const authMiddleware = async (
   socket: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
-  next: (err?: ExtendedError | undefined) => void
+  next: (err?: ExtendedError | undefined) => void,
 ) => {
   const token = socket.handshake.query?.token;
 
@@ -17,7 +17,6 @@ export const authMiddleware = async (
   }
 
   try {
-    // TODO: move to env
     verify(token, getEnv('JWT_SECRET'));
   } catch (err) {
     next(new AuthenticationError());
