@@ -10,11 +10,9 @@ import (
 )
 
 type JwtCustomClaim struct {
-	UserID string `json:"userID"`
+	UserID string `json:"userId"`
 	jwt.RegisteredClaims
 }
-
-var jwtSecret = []byte(config.JWT_SECRET)
 
 func GenerateJwt(ctx context.Context, userID string) (string, error) {
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, &JwtCustomClaim{
