@@ -2,14 +2,14 @@ import { useQuery } from '@tanstack/react-query';
 import { graphql } from 'src/gql';
 import { wait } from 'src/utils/wait';
 
-const document = graphql(`
-  query allFriends {
-    friends {
-      id
-      name
-    }
-  }
-`);
+// const document = graphql(`
+//   query allFriends {
+//     friends {
+//       id
+//       name
+//     }
+//   }
+// `);
 
 const useFriends = () => {
   const qr = useQuery(['friends'], async () => {

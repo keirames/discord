@@ -2,6 +2,7 @@ type Room {
   id: ID!
   title: String
   members: [User!]!
+  messages: [Message!]!
 }
 
 type Message {
@@ -27,17 +28,18 @@ input SendMessageInput {
 }
 
 type Query {
+  me: User!
   rooms: [Room!]!
   room(id: ID!): Room!
   messages(roomId: String!): [Message!]!
-  friends: [User!]!
 }
 
 type Mutation {
   createRoom(input: NewRoom!): Room!
   sendMessage(input: SendMessageInput!): Message!
-  addMember(userId: String!, roomId: String!): String!
-  kickMember(userId: String!, roomId: String!): String!
-  deleteMessage(messageId: String!): String!
+  seen(roomId: ID!, messages: [String!]!): [String!]!
+  addMember(userId: String!, roomId: String!): User!
+  kickMember(userId: String!, roomId: String!): User!
+  deleteMessage(messageId: String!): Message!
   signIn(name: String!): String!
 }

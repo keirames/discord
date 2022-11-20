@@ -10,10 +10,12 @@ import {
   Typography,
 } from 'react-native-ui-lib';
 import { useSendMessage } from 'src/modules/chat/use-send-message';
-import { inputValAtom } from './atoms';
+
+import { inputValAtom, roomIdAtom } from './atoms';
 
 export const InputToolbar = () => {
   const [val, setVal] = useAtom(inputValAtom);
+  const [roomId] = useAtom(roomIdAtom);
   const mutation = useSendMessage();
 
   return (
@@ -29,7 +31,7 @@ export const InputToolbar = () => {
         style={styles.icon}
         onPress={() => {
           setVal('');
-          mutation.mutate(val);
+          mutation.mutate({ input: { roomId, text: val } });
         }}
       />
     </View>

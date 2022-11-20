@@ -2,13 +2,18 @@ import { useAtom } from 'jotai';
 import React from 'react';
 import { ListRenderItemInfo, Text, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
+import { roomIdAtom } from 'src/modules/chat/atoms';
+import { useGetRoom } from 'src/modules/chat/use-get-room';
 
-import { messagesAtom } from './atoms';
 import { Message } from './message';
 import { Message as IMessage } from './types';
 
 export const MessageContainer = () => {
-  const [messages] = useAtom(messagesAtom);
+  const [roomId] = useAtom(roomIdAtom);
+  const { room } = useGetRoom(roomId);
+
+  // * We will get room here for sure
+  const messages = room!.messages;
 
   const renderRow = (info: ListRenderItemInfo<IMessage>) => {
     const { index, item } = info;

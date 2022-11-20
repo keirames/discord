@@ -1,12 +1,12 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
-import { TextInput } from 'react-native-gesture-handler';
 import { Colors } from 'react-native-ui-lib';
+import { useReactQuerySubscription } from 'src/hooks/use-react-query-subscription';
 import { ChatBox } from 'src/modules/chat/chat-box';
-import { useSendMessage } from 'src/modules/chat/use-send-message';
-import useRoom from 'src/modules/chat/useRoom';
+import { useGetRoom } from 'src/modules/chat/use-get-room';
 import { useUser } from 'src/modules/useUser';
+
 import { TabChatStackParamList } from '../types';
 
 type Props = NativeStackScreenProps<TabChatStackParamList, 'ChatDetail'>;
@@ -14,20 +14,25 @@ type Props = NativeStackScreenProps<TabChatStackParamList, 'ChatDetail'>;
 const TabChatDetailScreen: React.FC<Props> = (props) => {
   const { route } = props;
 
-  const { room } = useRoom();
-  const { userId } = useUser();
-  const mutation = useSendMessage();
+  const roomId = route.params.roomID;
 
-  const [inputVal, setInputVal] = useState('');
+  useReactQuerySubscription();
+  const { room, isLoading } = useGetRoom(roomId);
+  const { userId } = useUser();
 
   if (!userId) return null;
+
+  if (isLoading)
+    return (
+      <View>
+        <Text>Loading...</Text>
+      </View>
+    );
 
   if (room) {
     return (
       <SafeAreaView style={styles.container}>
-        <ChatBox userId={userId} messages={room.messages} />
-        {/* <TextInput value={inputVal} onChangeText={(v) => setInputVal(v)} />
-        <Text onPress={() => mutation.mutate(inputVal)}>Send</Text> */}
+        <ChatBox userId={userId} roomId={roomId} messages={room.messages} />
       </SafeAreaView>
     );
   }

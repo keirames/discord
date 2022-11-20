@@ -1,9 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { Badge, Colors, Spacings, Typography } from 'react-native-ui-lib';
 import Avatar from 'src/components/avatar';
-import useRooms from 'src/modules/rooms/useRooms';
+import { useGetRooms } from 'src/modules/rooms/use-get-rooms';
 import { EvilIcons } from '@expo/vector-icons';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +15,7 @@ interface Props {
 const RoomPipe: React.FC<Props> = (props) => {
   const { id } = props;
 
-  const { rooms } = useRooms();
+  const { rooms } = useGetRooms();
 
   const { navigate } = useNavigation<TabChatScreenNavigationProps>();
 
@@ -27,8 +26,7 @@ const RoomPipe: React.FC<Props> = (props) => {
   return (
     <TouchableOpacity
       style={styles.container}
-      onPress={() => navigate('ChatDetail', { roomID: room.id })}
-    >
+      onPress={() => navigate('ChatDetail', { roomID: room.id })}>
       <Avatar />
       <View style={styles.content}>
         <Text style={styles.title}>{room.title}</Text>
@@ -42,8 +40,7 @@ const RoomPipe: React.FC<Props> = (props) => {
       <View style={styles.indicator}>
         <Text style={styles.time}>8:40 PM</Text>
         <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        >
+          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <EvilIcons name="check" size={18} color="black" />
         </View>
       </View>
@@ -77,7 +74,7 @@ const styles = StyleSheet.create({
 });
 
 const RoomList = () => {
-  const { rooms } = useRooms();
+  const { rooms } = useGetRooms();
 
   return (
     <View>
