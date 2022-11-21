@@ -95,10 +95,11 @@ func MembersAddedProducer(roomID string, userIDs []string) {
 }
 
 type MessageSentEventParams struct {
-	RoomID      string `json:"roomId"`
-	UserID      string `json:"userId"`
-	MessageID   string `json:"messageId"`
-	MessageText string `json:"messageText"`
+	RoomID           string `json:"roomId"`
+	UserID           string `json:"userId"`
+	MessageID        string `json:"messageId"`
+	MessageText      string `json:"messageText"`
+	MessageCreatedAt string `json:"messageCreatedAt"`
 }
 
 func MessageSentProducer(params MessageSentEventParams) {

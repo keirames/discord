@@ -5,21 +5,23 @@ import (
 )
 
 type Message struct {
-	ID     string `db:"id"`
-	Text   string `db:"text"`
-	RoomID string `db:"room_id"`
-	UserID string `db:"user_id"`
-	User   User   `db:"user"`
+	ID        string `db:"id"`
+	Text      string `db:"text"`
+	RoomID    string `db:"room_id"`
+	UserID    string `db:"user_id"`
+	User      User   `db:"user"`
+	CreatedAt string `db:"created_at"`
 }
 
 func MapMessageToModel(message Message) *model.Message {
 	user := MapUserToModel(message.User)
 
 	return &model.Message{
-		ID:     message.ID,
-		Text:   message.Text,
-		UserID: message.UserID,
-		User:   &user,
+		ID:        message.ID,
+		Text:      message.Text,
+		UserID:    message.UserID,
+		User:      &user,
+		CreatedAt: message.CreatedAt,
 	}
 }
 

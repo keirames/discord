@@ -3,10 +3,11 @@
 package model
 
 type Message struct {
-	ID     string `json:"id"`
-	Text   string `json:"text"`
-	UserID string `json:"userId"`
-	User   *User  `json:"user"`
+	ID        string `json:"id"`
+	Text      string `json:"text"`
+	UserID    string `json:"userId"`
+	User      *User  `json:"user"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type NewRoom struct {

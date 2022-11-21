@@ -11,6 +11,7 @@ create table rooms (
 create table messages (
 	id uuid primary key default uuid_generate_v4(),
 	text text not null,
+	created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
 
 	room_id uuid not null,
 	user_id uuid not null,

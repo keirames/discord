@@ -45,7 +45,10 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 }
 
 // SendMessage is the resolver for the sendMessage field.
-func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*model.Message, error) {
+func (r *mutationResolver) SendMessage(
+	ctx context.Context,
+	input model.SendMessageInput,
+) (*model.Message, error) {
 	user := middlewares.GetUser(ctx)
 
 	room, err := repository.RoomRepo.FindByID(input.RoomID)
@@ -57,30 +60,37 @@ func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMess
 		Insert("messages").
 		Columns("text", "user_id", "room_id").
 		Values(input.Text, user.ID, room.ID).
-		Suffix("RETURNING \"id\"").
+		Suffix(`RETURNING "id", "created_at"`).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()
 	if err != nil {
 		return nil, utils.UserInputError()
 	}
 
-	var msgID string
-	err = db.Q.Get(&msgID, sql, args...)
+	type row struct {
+		ID        string `db:"id"`
+		CreatedAt string `db:"created_at"`
+	}
+
+	var rowData row
+	err = db.Q.Get(&rowData, sql, args...)
 	if err != nil {
 		return nil, utils.UserInputError()
 	}
 
 	kafkaRepo.MessageSentProducer(kafkaRepo.MessageSentEventParams{
-		RoomID:      input.RoomID,
-		UserID:      user.ID,
-		MessageID:   msgID,
-		MessageText: input.Text,
+		RoomID:           input.RoomID,
+		UserID:           user.ID,
+		MessageID:        rowData.ID,
+		MessageText:      input.Text,
+		MessageCreatedAt: rowData.CreatedAt,
 	})
 
 	return &model.Message{
-		ID:     msgID,
-		Text:   input.Text,
-		UserID: user.ID,
+		ID:        rowData.ID,
+		Text:      input.Text,
+		UserID:    user.ID,
+		CreatedAt: rowData.CreatedAt,
 	}, nil
 }
 
@@ -264,7 +274,8 @@ func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error
 				u.name as "user.name",
 				m.id as "message.id",
 				m.text as "message.text",
-				m.user_id as "message.user_id"
+				m.user_id as "message.user_id",
+				m.created_at as "message.created_at"
 				`,
 			).
 			From("rooms").
@@ -290,13 +301,14 @@ func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error
 
 	for rows.Next() {
 		type row struct {
-			ID            string `db:"id"`
-			Title         string `db:"title"`
-			UserID        string `db:"user.id"`
-			UserName      string `db:"user.name"`
-			MessageID     string `db:"message.id"`
-			Text          string `db:"message.text"`
-			MessageUserID string `db:"message.user_id"`
+			ID               string `db:"id"`
+			Title            string `db:"title"`
+			UserID           string `db:"user.id"`
+			UserName         string `db:"user.name"`
+			MessageID        string `db:"message.id"`
+			Text             string `db:"message.text"`
+			MessageUserID    string `db:"message.user_id"`
+			MessageCreatedAt string `db:"message.created_at"`
 		}
 
 		var r row
@@ -318,9 +330,10 @@ func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error
 		if !ok {
 			messagesMap[r.MessageID] = true
 			room.Messages = append(room.Messages, entities.Message{
-				ID:     r.MessageID,
-				Text:   r.Text,
-				UserID: r.MessageUserID,
+				ID:        r.MessageID,
+				Text:      r.Text,
+				UserID:    r.MessageUserID,
+				CreatedAt: r.MessageCreatedAt,
 			})
 		}
 	}

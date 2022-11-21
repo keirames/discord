@@ -16,6 +16,7 @@ type Message {
   text: String!
   userId: String!
   user: User
+  createdAt: String!
 }
 
 type User {
