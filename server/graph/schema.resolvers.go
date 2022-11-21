@@ -281,7 +281,14 @@ func (r *queryResolver) Room(ctx context.Context, id string) (*model.Room, error
 			From("rooms").
 			InnerJoin("room_members rm on rm.room_id = rooms.id").
 			InnerJoin("users u on rm.user_id = u.id").
-			LeftJoin("messages m on rooms.id = m.room_id").
+			JoinClause(
+				sq.
+					Select("*").
+					From("messages").
+					OrderBy("messages.created_at desc").
+					Prefix(`LEFT JOIN (`).
+					Suffix(`) as m on rooms.id = m.room_id`),
+			).
 			Where(sq.Eq{"rooms.id": id}).
 			PlaceholderFormat(sq.Dollar).
 			ToSql()
