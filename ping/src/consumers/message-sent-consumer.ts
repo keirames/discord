@@ -12,6 +12,7 @@ interface TopicData {
   roomId: string;
   messageId: string;
   messageText: string;
+  messageCreatedAt: string;
 }
 
 const getMessageSentConsumer = async (): Promise<Consumer> => {
