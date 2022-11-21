@@ -3,9 +3,9 @@ import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { Colors } from 'react-native-ui-lib';
 import { useReactQuerySubscription } from 'src/hooks/use-react-query-subscription';
+import { useAuthStore } from 'src/modules/auth/use-auth-store';
 import { ChatBox } from 'src/modules/chat/chat-box';
 import { useGetRoom } from 'src/modules/chat/use-get-room';
-import { useUser } from 'src/modules/useUser';
 
 import { TabChatStackParamList } from '../types';
 
@@ -18,7 +18,7 @@ const TabChatDetailScreen: React.FC<Props> = (props) => {
 
   useReactQuerySubscription();
   const { room, isLoading } = useGetRoom(roomId);
-  const { userId } = useUser();
+  const userId = useAuthStore((state) => state.user!.id);
 
   if (!userId) return null;
 

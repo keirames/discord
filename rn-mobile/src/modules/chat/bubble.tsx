@@ -1,5 +1,6 @@
-import { AntDesign } from '@expo/vector-icons';
-import React from 'react';
+import { AntDesign, FontAwesome } from '@expo/vector-icons';
+import { useAtom } from 'jotai';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
   Avatar,
@@ -9,6 +10,7 @@ import {
   Text,
 } from 'react-native-ui-lib';
 
+import { pendingMessagesAtom } from './atoms';
 import { Message as IMessage, Position } from './types';
 
 interface Props {
@@ -18,6 +20,25 @@ interface Props {
 
 export const Bubble: React.FC<Props> = (props) => {
   const { currentMessage, position } = props;
+
+  const [pendingMessages] = useAtom(pendingMessagesAtom);
+
+  const isPending = useMemo(
+    () => pendingMessages.includes(currentMessage.id),
+    [currentMessage.id, pendingMessages]
+  );
+
+  const renderReceipts = () => {
+    if (position === 'right') {
+      if (isPending) {
+        return <FontAwesome name="circle-o" style={styles.tick} />;
+      }
+
+      return <FontAwesome name="check-circle-o" style={styles.tick} />;
+    }
+
+    return null;
+  };
 
   return (
     <View
@@ -37,9 +58,7 @@ export const Bubble: React.FC<Props> = (props) => {
         style={[styles.bubbleContainer, specificStyles[position].container]}>
         <Text>{currentMessage.text}</Text>
       </View>
-      {position === 'right' && (
-        <AntDesign name="checkcircleo" style={styles.tick} />
-      )}
+      {renderReceipts()}
     </View>
   );
 };

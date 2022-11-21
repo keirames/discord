@@ -32,7 +32,7 @@ export const MessageContainer = () => {
     <FlatList
       inverted
       showsVerticalScrollIndicator={false}
-      data={messages.reverse()}
+      data={messages}
       renderItem={renderRow}
       keyExtractor={(item) => item.id}
     />

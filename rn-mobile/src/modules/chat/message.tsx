@@ -16,18 +16,13 @@ export const Message: React.FC<Props> = (props) => {
 
   const [userId] = useAtom(userIdAtom);
 
-  const isMine = useMemo(
-    () => userId === currentMessage.id,
-    [currentMessage.id, userId]
-  );
-
   const position = useMemo<Position>(
-    () => (isMine ? 'right' : 'left'),
-    [isMine]
+    () => (userId === currentMessage.userId ? 'right' : 'left'),
+    [currentMessage.userId, userId]
   );
 
   return (
-    <View style={styles[isMine ? 'right' : 'left'].container}>
+    <View style={styles[position].container}>
       <Bubble currentMessage={currentMessage} position={position} />
     </View>
   );
