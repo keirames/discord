@@ -1,7 +1,7 @@
-import Head from 'next/head';
-import Image from 'next/image';
-import styles from '../styles/Home.module.css';
-
 export default function Home() {
-  return <div className="h1">hi</div>;
+  return (
+    <div className="flex h-[100vh] w-full items-center justify-center">
+      <button>Go</button>
+    </div>
+  );
 }

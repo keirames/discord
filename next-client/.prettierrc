@@ -1,0 +1,7 @@
+{
+  "prettier.trailingComma": "all",
+  "prettier.arrowParens": "always",
+  "prettier.singleQuote": true,
+  "prettier.semi": true,
+  "prettier.endOfLine": "auto"
+}
