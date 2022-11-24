@@ -15,6 +15,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
 	_ "github.com/lib/pq"
+	"github.com/rs/cors"
 )
 
 // type User struct {
@@ -82,6 +83,11 @@ func main() {
 
 	router := chi.NewRouter()
 
+	router.Use(cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowCredentials: true,
+		Debug:            true,
+	}).Handler)
 	router.Use(middlewares.DeviceMiddleware())
 	router.Use(middlewares.AuthHeaderMiddleware())
 	router.Use(middlewares.CookieMiddleware())
