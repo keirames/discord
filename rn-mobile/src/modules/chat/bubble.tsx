@@ -18,6 +18,23 @@ interface Props {
   position: Position;
 }
 
+export const Receipts: React.FC<{ messageId: string }> = (props) => {
+  const { messageId } = props;
+
+  const [pendingMessages] = useAtom(pendingMessagesAtom);
+
+  const isPending = useMemo(
+    () => pendingMessages.includes(messageId),
+    [messageId, pendingMessages]
+  );
+
+  if (isPending) {
+    return <FontAwesome name="circle-o" style={styles.tick} />;
+  }
+
+  return <FontAwesome name="check-circle-o" style={styles.tick} />;
+};
+
 export const Bubble: React.FC<Props> = (props) => {
   const { currentMessage, position } = props;
 
