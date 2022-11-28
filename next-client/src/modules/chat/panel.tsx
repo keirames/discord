@@ -39,7 +39,7 @@ export const Panel = () => {
                   <span className="w-2/3 truncate text-sm font-light text-gray-400">
                     fake last message and it is very long long long long
                   </span>
-                  <span className="w-1/3 text-right">1</span>
+                  {/* <span className="w-1/3 text-right">1</span> */}
                 </div>
               </div>
             </div>

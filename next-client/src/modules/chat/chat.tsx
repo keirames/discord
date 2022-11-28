@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChatBox } from './chat-box';
+import { ChatContainer } from './chat-box';
 import { Panel } from './panel';
 
 export const Chat = () => {
@@ -9,7 +9,7 @@ export const Chat = () => {
         <Panel />
       </div>
       <div className="h-full w-full">
-        <ChatBox />
+        <ChatContainer />
       </div>
     </div>
   );

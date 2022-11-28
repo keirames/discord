@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { Auth } from '../src/modules/auth/auth';
 
 export default function Home() {
-  const [queryClient] = useState(new QueryClient());
+  const [queryClient] = useState(
+    new QueryClient({
+      defaultOptions: { queries: { staleTime: 1000 * 60 * 5 } },
+    }),
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
