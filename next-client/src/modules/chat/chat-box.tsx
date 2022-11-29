@@ -1,6 +1,6 @@
-import clsx from 'clsx';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useAuthStore } from '../auth/use-auth-store';
+import { MessageContainer } from './message-container';
 import { useGetRoom } from './use-get-room';
 import { useRoomStore } from './use-room-store';
 
@@ -23,28 +23,10 @@ export const ChatBox: React.FC<Props> = (props) => {
 
   return (
     <div className="h-full w-full">
-      {room?.messages.map((message) => {
-        const { id, userId: msgUserId, text } = message;
+      {room?.messages.reverse().map((message) => {
+        const { id } = message;
 
-        return (
-          <div
-            className={clsx({
-              'flex flex-row': true,
-              'justify-end': msgUserId === userId,
-            })}
-            key={id}
-          >
-            <div
-              className={clsx({
-                'my-1 rounded-full py-2 px-4': true,
-                'bg-gray-100 text-black': msgUserId !== userId,
-                'bg-blue-500 text-white': msgUserId === userId,
-              })}
-            >
-              {text}
-            </div>
-          </div>
-        );
+        return <MessageContainer key={id} id={id} roomId={roomId} />;
       })}
       <div ref={lastRef} />
     </div>

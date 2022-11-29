@@ -16,6 +16,7 @@ const document = graphql(`
         id
         text
         userId
+        createdAt
       }
     }
   }
