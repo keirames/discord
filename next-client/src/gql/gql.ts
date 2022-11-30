@@ -17,6 +17,7 @@ const documents = {
     "\n  mutation signIn($name: String!) {\n    signIn(name: $name)\n  }\n": types.SignInDocument,
     "\n  query GetRoom($id: ID!) {\n    room(id: $id) {\n      id\n      title\n      members {\n        id\n        name\n      }\n      messages {\n        id\n        text\n        userId\n        createdAt\n      }\n    }\n  }\n": types.GetRoomDocument,
     "\n  query allRooms {\n    rooms {\n      id\n      title\n    }\n  }\n": types.AllRoomsDocument,
+    "\n  mutation SendMessage($input: SendMessageInput!) {\n    sendMessage(input: $input) {\n      id\n      text\n      userId\n      createdAt\n    }\n  }\n": types.SendMessageDocument,
 };
 
 /**
@@ -35,6 +36,10 @@ export function graphql(source: "\n  query GetRoom($id: ID!) {\n    room(id: $id
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query allRooms {\n    rooms {\n      id\n      title\n    }\n  }\n"): (typeof documents)["\n  query allRooms {\n    rooms {\n      id\n      title\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SendMessage($input: SendMessageInput!) {\n    sendMessage(input: $input) {\n      id\n      text\n      userId\n      createdAt\n    }\n  }\n"): (typeof documents)["\n  mutation SendMessage($input: SendMessageInput!) {\n    sendMessage(input: $input) {\n      id\n      text\n      userId\n      createdAt\n    }\n  }\n"];
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.

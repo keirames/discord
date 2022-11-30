@@ -17,7 +17,7 @@ export const useMe = (options: Pick<UseQueryOptions, 'enabled'>) => {
   const { enabled } = options;
 
   const qr = useQuery({
-    queryKey: ['me', document],
+    queryKey: ['me'],
     queryFn: async (): Promise<GetMeQuery> => graphQLClient.request(document),
     enabled,
     onSuccess(data) {

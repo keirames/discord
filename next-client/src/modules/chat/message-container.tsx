@@ -11,17 +11,17 @@ type Props = {
 export const MessageContainer: React.FC<Props> = (props) => {
   const { id, roomId } = props;
 
-  const { room } = useGetRoom(roomId);
+  const { messages } = useGetRoom(roomId);
   // sure will get user here
   const userId = useAuthStore((state) => state.user!.id);
 
-  const message = room?.messages.find((m) => m.id === id);
-  const messageIdx = room?.messages.findIndex((m) => m.id === id);
+  const message = messages.find((m) => m.id === id);
+  const messageIdx = messages.findIndex((m) => m.id === id);
 
-  if (!message || !messageIdx) return null;
+  if (!message || !(messageIdx !== -1)) return null;
 
-  const prevMessage = room?.messages[messageIdx - 1];
-  const nextMessage = room?.messages[messageIdx + 1];
+  const prevMessage = messages[messageIdx - 1];
+  const nextMessage = messages[messageIdx + 1];
   return (
     <Bubble
       userId={userId}

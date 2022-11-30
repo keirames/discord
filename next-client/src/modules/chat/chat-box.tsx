@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useAuthStore } from '../auth/use-auth-store';
+import { InputToolbar } from './input-toolbar';
 import { MessageContainer } from './message-container';
 import { useGetRoom } from './use-get-room';
 import { useRoomStore } from './use-room-store';
@@ -11,7 +12,7 @@ type Props = {
 export const ChatBox: React.FC<Props> = (props) => {
   const { roomId } = props;
 
-  const { room } = useGetRoom(roomId);
+  const { room, messages } = useGetRoom(roomId);
   const userId = useAuthStore((state) => state.user?.id);
   const lastRef = useRef<HTMLDivElement | null>(null);
 
@@ -23,7 +24,7 @@ export const ChatBox: React.FC<Props> = (props) => {
 
   return (
     <div className="h-full w-full">
-      {room?.messages.reverse().map((message) => {
+      {messages.map((message) => {
         const { id } = message;
 
         return <MessageContainer key={id} id={id} roomId={roomId} />;
@@ -40,13 +41,15 @@ export const ChatContainer = () => {
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col border border-red-200">
-      <div>
+      <div className="h-[5%]">
         <span>Header</span>
       </div>
-      <div className="h-[90vh] overflow-y-scroll border border-blue-100">
+      <div className="h-full overflow-y-scroll">
         <ChatBox roomId={roomId} />
       </div>
-      <div>input</div>
+      <div className="flex h-[8%] w-full items-center justify-center">
+        <InputToolbar />
+      </div>
     </div>
   );
 };

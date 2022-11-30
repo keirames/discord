@@ -13,7 +13,7 @@ const document = graphql(`
 
 export const useGetRooms = () => {
   const qr = useQuery({
-    queryKey: ['rooms', document],
+    queryKey: ['rooms'],
     queryFn: () => graphQLClient.request(document),
   });
 

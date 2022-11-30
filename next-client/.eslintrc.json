@@ -2,7 +2,7 @@
   "plugins": ["@tanstack/query"],
   "extends": ["next/core-web-vitals", "plugin:@tanstack/eslint-plugin-query/recommended"],
   "rules": {
-    "@tanstack/query/exhaustive-deps": "error",
+    "@tanstack/query/exhaustive-deps": "off",
     "@tanstack/query/prefer-query-object-syntax": "error"
   }
 }
