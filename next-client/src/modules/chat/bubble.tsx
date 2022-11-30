@@ -72,11 +72,10 @@ export const Bubble: React.FC<Props> = (props) => {
       <div key={currentMessage.id} className="flex flex-row justify-end">
         <div
           className={clsx({
-            'bg-blue-500 py-2 px-4 text-white': true,
-            'mb-[0.1rem] mt-2 rounded-md rounded-tl-3xl': bubbleType === 'top',
-            'my-[0.1rem] rounded-md': bubbleType === 'middle',
-            'mt-[0.1rem] mb-2 rounded-md rounded-bl-3xl':
-              bubbleType === 'bottom',
+            'rounded-3xl bg-blue-500 py-2 px-4 text-white': true,
+            'mb-[0.1rem] mt-2 rounded-br-md': bubbleType === 'top',
+            'my-[0.1rem] rounded-r-md': bubbleType === 'middle',
+            'mt-[0.1rem] mb-2 rounded-tr-md': bubbleType === 'bottom',
             'my-2 rounded-full': bubbleType === 'alone',
           })}
         >
@@ -108,11 +107,10 @@ export const Bubble: React.FC<Props> = (props) => {
         </div>
         <div
           className={clsx({
-            'my-1 bg-gray-200 py-2 px-4 text-black': true,
-            'mb-[0.1rem] mt-2 rounded-md rounded-tr-3xl': bubbleType === 'top',
-            'my-[0.1rem] rounded-md': bubbleType === 'middle',
-            'mt-[0.1rem] mb-2 rounded-md rounded-br-3xl':
-              bubbleType === 'bottom',
+            'my-1 rounded-3xl bg-gray-200 py-2 px-4 text-black': true,
+            'mb-[0.1rem] mt-2 rounded-bl-md': bubbleType === 'top',
+            'my-[0.1rem] rounded-l-md': bubbleType === 'middle',
+            'mt-[0.1rem] mb-2 rounded-tl-md': bubbleType === 'bottom',
             'my-2 rounded-full': bubbleType === 'alone',
           })}
         >
