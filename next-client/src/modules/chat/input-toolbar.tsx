@@ -35,7 +35,7 @@ export const InputToolbar = () => {
         onChange={(e) => setInputVal(e.currentTarget.value)}
         onKeyUp={handleKeyUp}
       />
-      <div className="ml-4 h-full w-[5%] p-1">
+      <div className="ml-4 h-full w-[30px] p-1">
         {inputVal.length !== 0 && (
           <IoSend
             className="h-full w-full cursor-pointer text-blue-600"
