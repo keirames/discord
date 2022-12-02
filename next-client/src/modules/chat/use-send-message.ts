@@ -8,6 +8,7 @@ import {
 } from '../../gql/graphql';
 import { graphQLClient } from '../../graphql-client';
 import { useAuthStore } from '../auth/use-auth-store';
+import { usePendingMessagesStore } from './use-pending-messages-store';
 
 const document = graphql(`
   mutation SendMessage($input: SendMessageInput!) {
@@ -25,6 +26,7 @@ export const useSendMessage = () => {
 
   // No way it will undefined here
   const userId = useAuthStore((state) => state.user!.id);
+  const { markPending, removePending } = usePendingMessagesStore();
 
   const useMutationResult = useMutation<
     SendMessageMutation,
@@ -39,6 +41,8 @@ export const useSendMessage = () => {
       } = variables;
 
       const tempId = v4();
+
+      markPending(tempId);
 
       queryClient.setQueryData<GetRoomQuery>(['room', roomId], (oldData) => {
         if (!oldData) return;
@@ -70,6 +74,8 @@ export const useSendMessage = () => {
           if (!oldData) return;
 
           const { messages } = oldData.room;
+
+          removePending(tempId);
 
           // Change tempId to real id & created at
           const updatedMessages = [...messages].map((msg) => {

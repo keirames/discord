@@ -7,5 +7,5 @@ interface State {
 
 export const useRoomStore = create<State>()((set) => ({
   roomId: null,
-  pickRoom: (roomId: string) => set((state) => ({ ...state, roomId })),
+  pickRoom: (roomId) => set((state) => ({ ...state, roomId })),
 }));

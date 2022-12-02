@@ -1,8 +1,10 @@
 import clsx from 'clsx';
 import React, { useCallback, useMemo } from 'react';
+import { BsCheckCircle, BsCheckCircleFill, BsCircle } from 'react-icons/bs';
 import { useAuthStore } from '../auth/use-auth-store';
 import { MessageModel } from './types';
 import { useGetRoom } from './use-get-room';
+import { usePendingMessagesStore } from './use-pending-messages-store';
 
 type Props = {
   // Id of user, not message's userId
@@ -14,6 +16,10 @@ type Props = {
 
 export const Bubble: React.FC<Props> = (props) => {
   const { userId, currentMessage, nextMessage, prevMessage } = props;
+
+  const pendingMessages = usePendingMessagesStore(
+    (state) => state.pendingMessages,
+  );
 
   const isMine = useMemo(
     () => currentMessage.userId === userId,
@@ -69,26 +75,42 @@ export const Bubble: React.FC<Props> = (props) => {
 
   const renderOwnBubble = () => {
     return (
-      <div key={currentMessage.id} className="flex flex-row justify-end">
+      <div
+        key={currentMessage.id}
+        className={clsx({
+          'flex min-w-0 flex-row items-end justify-end': true,
+          'mb-1 mt-2': bubbleType === 'top',
+          'my-1': bubbleType === 'middle',
+          'mt-1 mb-2': bubbleType === 'bottom',
+          'my-2': bubbleType === 'alone',
+        })}
+      >
         <div
           className={clsx({
-            'rounded-3xl bg-blue-500 py-2 px-4 text-white': true,
-            'mb-[0.1rem] mt-2 rounded-br-md': bubbleType === 'top',
-            'my-[0.1rem] rounded-r-md': bubbleType === 'middle',
-            'mt-[0.1rem] mb-2 rounded-tr-md': bubbleType === 'bottom',
-            'my-2 rounded-full': bubbleType === 'alone',
+            'max-w-[60%] rounded-3xl bg-blue-500 py-2 px-4 text-white': true,
+            'rounded-br-md': bubbleType === 'top',
+            'rounded-r-md': bubbleType === 'middle',
+            'rounded-tr-md': bubbleType === 'bottom',
+            'rounded-full': bubbleType === 'alone',
           })}
         >
-          {currentMessage.text}
+          <div className="break-words">{currentMessage.text}</div>
         </div>
-        <div className="w-[10px]" />
+        <div className="ml-1 w-[20px] text-gray-400">
+          {pendingMessages.includes(currentMessage.id) ? (
+            <BsCircle />
+          ) : (
+            <BsCheckCircle />
+          )}
+          {/* <BsCheckCircleFill /> */}
+        </div>
       </div>
     );
   };
 
   const renderBubble = () => {
     return (
-      <div className="flex flex-row" key={currentMessage.id}>
+      <div className="flex min-w-0 flex-row" key={currentMessage.id}>
         <div
           className={clsx({
             'mr-2 flex justify-center': true,
@@ -107,14 +129,15 @@ export const Bubble: React.FC<Props> = (props) => {
         </div>
         <div
           className={clsx({
-            'my-1 rounded-3xl bg-gray-200 py-2 px-4 text-black': true,
-            'mb-[0.1rem] mt-2 rounded-bl-md': bubbleType === 'top',
-            'my-[0.1rem] rounded-l-md': bubbleType === 'middle',
-            'mt-[0.1rem] mb-2 rounded-tl-md': bubbleType === 'bottom',
+            'my-1 max-w-[60%] rounded-3xl bg-gray-200 py-2 px-4 text-black':
+              true,
+            'mb-1 mt-2 rounded-bl-md': bubbleType === 'top',
+            'my-1 rounded-l-md': bubbleType === 'middle',
+            'mt-1 mb-2 rounded-tl-md': bubbleType === 'bottom',
             'my-2 rounded-full': bubbleType === 'alone',
           })}
         >
-          {currentMessage.text}
+          <div className="break-words">{currentMessage.text}</div>
         </div>
       </div>
     );

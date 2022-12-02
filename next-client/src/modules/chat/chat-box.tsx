@@ -23,7 +23,7 @@ export const ChatBox: React.FC<Props> = (props) => {
   }, [room]);
 
   return (
-    <div className="h-full w-full">
+    <div className="h-full w-full overflow-y-scroll">
       {messages.map((message) => {
         const { id } = message;
 
@@ -44,12 +44,8 @@ export const ChatContainer = () => {
       <div className="h-[5%]">
         <span>Header</span>
       </div>
-      <div className="h-full overflow-y-scroll">
-        <ChatBox roomId={roomId} />
-      </div>
-      <div className="flex h-[8%] w-full items-center justify-center">
-        <InputToolbar />
-      </div>
+      <ChatBox roomId={roomId} />
+      <InputToolbar />
     </div>
   );
 };

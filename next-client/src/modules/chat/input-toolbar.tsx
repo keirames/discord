@@ -1,18 +1,48 @@
 import React, { useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { IoSend } from 'react-icons/io5';
+import ReactTextareaAutosize from 'react-textarea-autosize';
 import { useRoomStore } from './use-room-store';
 import { useSendMessage } from './use-send-message';
 
 export const InputToolbar = () => {
   const [inputVal, setInputVal] = useState<string>('');
+  const [rowHeight, setRowHeight] = useState(1);
+  const [focus, setFocus] = useState(false);
+
+  useHotkeys(
+    'ctrl+enter, meta+enter',
+    () => {
+      setInputVal((prev) => prev.concat('\n'));
+    },
+    {
+      enabled: focus && inputVal.length !== 0,
+      enableOnFormTags: ['TEXTAREA'],
+    },
+  );
+  useHotkeys(
+    'enter',
+    () => {
+      setInputVal('');
+      // handleSend();
+      console.log('enter');
+    },
+    {
+      enabled: inputVal.length !== 0,
+      enableOnFormTags: ['TEXTAREA'],
+    },
+  );
+
   const mutation = useSendMessage();
+
   const roomId = useRoomStore((state) => state.roomId);
 
-  const handleKeyUp: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (e.key !== 'Enter') return;
-
-    setInputVal('');
-    handleSend();
+  const handleKeyDown: React.KeyboardEventHandler<HTMLTextAreaElement> = (
+    e,
+  ) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+    }
   };
 
   const handleClickIcon: React.MouseEventHandler<SVGElement> = (e) => {
@@ -21,19 +51,25 @@ export const InputToolbar = () => {
   };
 
   const handleSend = () => {
-    if (!roomId) return;
+    if (!roomId || inputVal.length === 0) return;
 
-    mutation.mutate({ input: { roomId, text: inputVal } });
+    // mutation.mutate({ input: { roomId, text: inputVal } });
   };
 
   return (
-    <div className="flex flex-1 items-center justify-center px-4">
-      <input
-        className="h-10 w-full rounded-full bg-gray-100 p-4"
+    <div className="flex w-full flex-1 items-center justify-center p-4">
+      <ReactTextareaAutosize
         value={inputVal}
-        placeholder="Aa"
+        minRows={1}
+        maxRows={6}
+        onFocus={() => setFocus(true)}
+        onBlur={() => setFocus(false)}
+        className="w-full resize-none rounded-3xl bg-gray-100 px-4 py-2"
         onChange={(e) => setInputVal(e.currentTarget.value)}
-        onKeyUp={handleKeyUp}
+        onKeyDown={handleKeyDown}
+        onHeightChange={(h) => {
+          setRowHeight(h);
+        }}
       />
       <div className="ml-4 h-full w-[30px] p-1">
         {inputVal.length !== 0 && (

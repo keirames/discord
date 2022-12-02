@@ -8,7 +8,8 @@ export const Chat = () => {
       <div className="h-full w-2/5 p-4">
         <Panel />
       </div>
-      <div className="h-full w-full">
+      {/* //min-w-0 here to prevent chat container expand when there is long message */}
+      <div className="h-full w-full min-w-0">
         <ChatContainer />
       </div>
       <div className="h-full w-2/5">Chat Detail</div>
