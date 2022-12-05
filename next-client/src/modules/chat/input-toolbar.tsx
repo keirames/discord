@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { IoSend } from 'react-icons/io5';
 import ReactTextareaAutosize from 'react-textarea-autosize';
+import { Emoji } from './emoji';
 import { useRoomStore } from './use-room-store';
 import { useSendMessage } from './use-send-message';
 
@@ -24,19 +25,25 @@ export const InputToolbar = () => {
       }
 
       setInputVal('');
-      handleSend();
+      handleSendText();
     }
   };
 
   const handleClickIcon: React.MouseEventHandler<SVGElement> = (e) => {
     setInputVal('');
-    handleSend();
+    handleSendText();
   };
 
-  const handleSend = () => {
+  const handleSendText = () => {
     if (!roomId || inputVal.length === 0) return;
 
     mutation.mutate({ input: { roomId, text: inputVal } });
+  };
+
+  const handleSendIcon = () => {
+    if (!roomId) return;
+
+    mutation.mutate({ input: { roomId, text: 'ayaya' } });
   };
 
   return (
@@ -53,12 +60,14 @@ export const InputToolbar = () => {
           setRowHeight(h);
         }}
       />
-      <div className="ml-4 h-full w-[30px] p-1">
-        {inputVal.length !== 0 && (
+      <div className="ml-2 flex h-full w-[30px] cursor-pointer items-center justify-center p-1">
+        {inputVal.length !== 0 ? (
           <IoSend
             className="h-full w-full cursor-pointer text-blue-600"
             onClick={handleClickIcon}
           />
+        ) : (
+          <Emoji name="ayaya" onClick={() => handleSendIcon()} />
         )}
       </div>
     </div>
