@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuthStore } from '../auth/use-auth-store';
 import { Bubble } from './bubble';
-import { useGetRoom } from './use-get-room';
+import { useChatStore } from './use-chat-store';
 
 type Props = {
   id: string;
@@ -11,7 +11,7 @@ type Props = {
 export const MessageContainer: React.FC<Props> = (props) => {
   const { id, roomId } = props;
 
-  const { messages } = useGetRoom(roomId);
+  const messages = useChatStore((state) => state.messages);
   // sure will get user here
   const userId = useAuthStore((state) => state.user!.id);
 

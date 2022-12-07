@@ -1,25 +1,20 @@
 import clsx from 'clsx';
 import React, { useCallback, useMemo } from 'react';
-import { BsCheckCircle, BsCheckCircleFill, BsCircle } from 'react-icons/bs';
-import { useAuthStore } from '../auth/use-auth-store';
-import { MessageModel } from './types';
-import { useGetRoom } from './use-get-room';
-import { usePendingMessagesStore } from './use-pending-messages-store';
+import { BsCheckCircle, BsCircle } from 'react-icons/bs';
+import { Message, useChatStore } from './use-chat-store';
 
 type Props = {
   // Id of user, not message's userId
   userId: string;
-  currentMessage: MessageModel;
-  prevMessage?: MessageModel;
-  nextMessage?: MessageModel;
+  currentMessage: Message;
+  prevMessage?: Message;
+  nextMessage?: Message;
 };
 
 export const Bubble: React.FC<Props> = (props) => {
   const { userId, currentMessage, nextMessage, prevMessage } = props;
 
-  const pendingMessages = usePendingMessagesStore(
-    (state) => state.pendingMessages,
-  );
+  const pendingMessageIds = useChatStore((state) => state.pendingMessageIds);
 
   const isMine = useMemo(
     () => currentMessage.userId === userId,
@@ -27,7 +22,7 @@ export const Bubble: React.FC<Props> = (props) => {
   );
 
   const isSameUser = useCallback(
-    (m?: MessageModel) => {
+    (m?: Message) => {
       if (!m) return false;
 
       return m.userId === currentMessage.userId;
@@ -36,7 +31,7 @@ export const Bubble: React.FC<Props> = (props) => {
   );
 
   const isShortTime = useCallback(
-    (m?: MessageModel) => {
+    (m?: Message) => {
       if (!m) return false;
 
       const gapInMilliseconds = Math.abs(
@@ -97,7 +92,7 @@ export const Bubble: React.FC<Props> = (props) => {
           <div className="break-words">{currentMessage.text}</div>
         </div>
         <div className="ml-1 w-[20px] text-gray-400">
-          {pendingMessages.includes(currentMessage.id) ? (
+          {pendingMessageIds.includes(currentMessage.id) ? (
             <BsCircle />
           ) : (
             <BsCheckCircle />
@@ -108,7 +103,7 @@ export const Bubble: React.FC<Props> = (props) => {
     );
   };
 
-  const renderBubble = () => {
+  const renderUserBubble = () => {
     return (
       <div className="flex min-w-0 flex-row" key={currentMessage.id}>
         <div
@@ -143,5 +138,9 @@ export const Bubble: React.FC<Props> = (props) => {
     );
   };
 
-  return isMine ? renderOwnBubble() : renderBubble();
+  const renderBubble = () => {
+    return isMine ? renderOwnBubble() : renderUserBubble();
+  };
+
+  return renderBubble();
 };

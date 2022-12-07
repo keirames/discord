@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useAuthStore } from '../auth/use-auth-store';
 import { InputToolbar } from './input-toolbar';
 import { MessageContainer } from './message-container';
+import { useChatStore } from './use-chat-store';
 import { useGetRoom } from './use-get-room';
 import { useRoomStore } from './use-room-store';
 
@@ -12,7 +13,8 @@ type Props = {
 export const ChatBox: React.FC<Props> = (props) => {
   const { roomId } = props;
 
-  const { room, messages } = useGetRoom(roomId);
+  const { room } = useGetRoom(roomId);
+  const messages = useChatStore((state) => state.messages);
   const userId = useAuthStore((state) => state.user?.id);
   const lastRef = useRef<HTMLDivElement | null>(null);
 

@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import _ from 'lodash';
 import { graphql } from '../../gql';
 import { GetRoomQuery } from '../../gql/graphql';
 import { graphQLClient } from '../../graphql-client';
-import { MessageModel } from './types';
+import { useChatStore } from './use-chat-store';
 
 const document = graphql(`
   query GetRoom($id: ID!) {
@@ -25,20 +24,25 @@ const document = graphql(`
 `);
 
 export const useGetRoom = (id: string) => {
+  const setMessages = useChatStore((state) => state.setMessages);
+
   const queryResult = useQuery({
     queryKey: ['room', id],
     queryFn: async (): Promise<GetRoomQuery> =>
       graphQLClient.request(document, { id }),
+    onSuccess: (data) => {
+      const messages = data.room.messages;
+      setMessages(
+        messages
+          .map((message) => {
+            const { id, text, userId, createdAt } = message;
+
+            return { id, text, userId, createdAt };
+          })
+          .reverse(),
+      );
+    },
   });
 
-  const messages: MessageModel[] = _.reverse(
-    (queryResult.data?.room.messages || []).map((m) => ({
-      id: m.id,
-      text: m.text,
-      userId: m.userId,
-      createdAt: m.createdAt,
-    })),
-  );
-
-  return { room: queryResult.data?.room, messages, ...queryResult };
+  return { room: queryResult.data?.room, ...queryResult };
 };
