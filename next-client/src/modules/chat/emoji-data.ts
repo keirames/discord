@@ -1,7 +1,8 @@
 type EmoteList = typeof customEmojis;
 export type EmoteKeys = EmoteList[number]['name'];
 
-export const emoteMap: Record<string, string> = {};
+// make sure fill emoteMap later
+export const emoteMap = {} as Record<EmoteKeys, string>;
 
 export type CustomEmote = {
   name: string;

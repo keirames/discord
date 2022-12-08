@@ -14,8 +14,6 @@ export const Emoji: React.FC<Props> = (props) => {
   if (!src) return <div>{`:${name}:`}</div>;
 
   return (
-    <div>
-      <img alt="emoji" src={src} onClick={onClick} />
-    </div>
+    <img alt="emoji" className="inline-block" src={src} onClick={onClick} />
   );
 };

@@ -1,6 +1,10 @@
 import clsx from 'clsx';
 import React, { useCallback, useMemo } from 'react';
 import { BsCheckCircle, BsCircle } from 'react-icons/bs';
+import { v4 } from 'uuid';
+import { Emoji } from './emoji';
+import { emoteMap, EmoteKeys } from './emoji-data';
+import { decode } from './token-transcoder';
 import { Message, useChatStore } from './use-chat-store';
 
 type Props = {
@@ -89,7 +93,20 @@ export const Bubble: React.FC<Props> = (props) => {
             'rounded-full': bubbleType === 'alone',
           })}
         >
-          <div className="break-words">{currentMessage.text}</div>
+          <div className="break-words">
+            {decode(currentMessage.text).map((tm) => {
+              const { type, value } = tm;
+
+              if (type === 'emote') {
+                const emote = emoteMap[value as EmoteKeys];
+                if (!emote) return value;
+
+                return <Emoji key={v4()} name={value as EmoteKeys} />;
+              }
+
+              return value;
+            })}
+          </div>
         </div>
         <div className="ml-1 w-[20px] text-gray-400">
           {pendingMessageIds.includes(currentMessage.id) ? (
@@ -132,7 +149,20 @@ export const Bubble: React.FC<Props> = (props) => {
             'my-2 rounded-full': bubbleType === 'alone',
           })}
         >
-          <div className="break-words">{currentMessage.text}</div>
+          <div className="break-words">
+            {decode(currentMessage.text).map((tm) => {
+              const { type, value } = tm;
+
+              if (type === 'emote') {
+                const emote = emoteMap[value as EmoteKeys];
+                if (!emote) return value;
+
+                return <Emoji key={v4()} name={value as EmoteKeys} />;
+              }
+
+              return value;
+            })}
+          </div>
         </div>
       </div>
     );
