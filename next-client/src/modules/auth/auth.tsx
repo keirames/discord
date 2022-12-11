@@ -1,5 +1,6 @@
 import React from 'react';
 import { Chat } from '../chat/chat';
+import { Container } from '../voice-room/container';
 import { useAuthStore } from './use-auth-store';
 import { useSignIn } from './use-sign-in';
 
@@ -7,7 +8,7 @@ export const Auth = () => {
   const mutation = useSignIn();
   const { user } = useAuthStore();
 
-  if (user) return <Chat />;
+  if (user) return <Container />;
 
   return (
     <button
