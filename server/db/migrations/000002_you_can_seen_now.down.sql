@@ -1,1 +1,1 @@
-drop table seen;
+DROP TABLE seen_members CASCADE;

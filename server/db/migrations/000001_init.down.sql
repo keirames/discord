@@ -1,4 +1,4 @@
-drop table room_members;
-drop table users;
-drop table rooms;
-drop table messages;
+DROP TABLE messages CASCADE;
+DROP TABLE room_members CASCADE;
+DROP TABLE rooms CASCADE;
+DROP TABLE users CASCADE;

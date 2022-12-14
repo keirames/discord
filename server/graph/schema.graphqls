@@ -34,6 +34,12 @@ input SendMessageInput {
   text: String!
 }
 
+type VoiceRoom {
+  id: ID!
+  title: String!
+  createdAt: String!
+}
+
 type Query {
   me: User! @auth
   rooms: [Room!]! @auth
@@ -42,6 +48,7 @@ type Query {
 }
 
 type Mutation {
+  joinVoiceRoom(id: ID!): String! @auth
   createRoom(input: NewRoom!): Room! @auth
   sendMessage(input: SendMessageInput!): Message! @auth
   seen(roomId: ID!, messages: [String!]!): [String!]! @auth

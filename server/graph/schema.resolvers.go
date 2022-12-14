@@ -20,6 +20,16 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// JoinVoiceRoom is the resolver for the joinVoiceRoom field.
+func (r *mutationResolver) JoinVoiceRoom(ctx context.Context, id string) (string, error) {
+	roomIds, err := repository.VoiceRoomRepository.FindMemberIdsInRoomByRoomId(id)
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	panic(fmt.Errorf("not implemented: JoinVoiceRoom - joinVoiceRoom"))
+}
+
 // CreateRoom is the resolver for the createRoom field.
 func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) (*model.Room, error) {
 	memberIDs := utils.Uniq(input.Members)
@@ -45,10 +55,7 @@ func (r *mutationResolver) CreateRoom(ctx context.Context, input model.NewRoom) 
 }
 
 // SendMessage is the resolver for the sendMessage field.
-func (r *mutationResolver) SendMessage(
-	ctx context.Context,
-	input model.SendMessageInput,
-) (*model.Message, error) {
+func (r *mutationResolver) SendMessage(ctx context.Context, input model.SendMessageInput) (*model.Message, error) {
 	user := middlewares.GetUser(ctx)
 
 	room, err := repository.RoomRepo.FindByID(input.RoomID)

@@ -31,3 +31,9 @@ type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 }
+
+type VoiceRoom struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	CreatedAt string `json:"createdAt"`
+}
