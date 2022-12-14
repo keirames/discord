@@ -27,9 +27,22 @@ type SendMessageInput struct {
 	Text   string `json:"text"`
 }
 
+type Server struct {
+	ID            string          `json:"id"`
+	Title         string          `json:"title"`
+	CreatedAt     string          `json:"createdAt"`
+	VoiceChannels []*VoiceChannel `json:"voiceChannels"`
+}
+
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type VoiceChannel struct {
+	ID        string `json:"id"`
+	Title     string `json:"title"`
+	CreatedAt string `json:"createdAt"`
 }
 
 type VoiceRoom struct {

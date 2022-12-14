@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	"discord/config"
 	"fmt"
-	"squirrel/config"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"

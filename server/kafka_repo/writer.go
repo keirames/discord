@@ -2,9 +2,9 @@ package kafkaRepo
 
 import (
 	"context"
+	"discord/topics"
 	"fmt"
 	"log"
-	"squirrel/topics"
 
 	"github.com/goccy/go-json"
 	"github.com/segmentio/kafka-go"
