@@ -1,6 +1,6 @@
 package entities
 
-import "squirrel/graph/model"
+import "discord/graph/model"
 
 type VoiceRoom struct {
 	ID        string `db:"id"`

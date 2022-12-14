@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"squirrel/db"
+	"discord/db"
 
 	sq "github.com/Masterminds/squirrel"
 )

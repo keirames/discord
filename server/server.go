@@ -1,15 +1,15 @@
 package main
 
 import (
+	"discord/config"
+	"discord/db"
+	"discord/directives"
+	"discord/graph"
+	"discord/graph/generated"
+	"discord/middlewares"
 	"log"
 	"net/http"
 	"os"
-	"squirrel/config"
-	"squirrel/db"
-	"squirrel/directives"
-	"squirrel/graph"
-	"squirrel/graph/generated"
-	"squirrel/middlewares"
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"

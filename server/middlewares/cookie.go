@@ -2,11 +2,11 @@ package middlewares
 
 import (
 	"context"
+	"discord/db/entities"
+	"discord/repository"
+	"discord/service"
 	"fmt"
 	"net/http"
-	"squirrel/db/entities"
-	"squirrel/repository"
-	"squirrel/service"
 )
 
 type authResponseWriter struct {

@@ -1,8 +1,6 @@
 package entities
 
-import (
-	"squirrel/graph/model"
-)
+import "discord/graph/model"
 
 type Room struct {
 	ID       string    `db:"id"`

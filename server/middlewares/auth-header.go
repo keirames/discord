@@ -2,9 +2,9 @@ package middlewares
 
 import (
 	"context"
+	"discord/repository"
+	"discord/service"
 	"net/http"
-	"squirrel/repository"
-	"squirrel/service"
 	"strings"
 )
 

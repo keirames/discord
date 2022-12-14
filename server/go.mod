@@ -1,4 +1,4 @@
-module squirrel
+module discord
 
 go 1.18
 

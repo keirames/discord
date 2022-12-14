@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"squirrel/db"
-	"squirrel/db/entities"
-	"squirrel/utils"
+	"discord/db"
+	"discord/db/entities"
+	"discord/utils"
 
 	sq "github.com/Masterminds/squirrel"
 )

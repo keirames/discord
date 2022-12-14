@@ -2,7 +2,7 @@ package directives
 
 import (
 	"context"
-	"squirrel/middlewares"
+	"discord/middlewares"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/vektah/gqlparser/v2/gqlerror"
