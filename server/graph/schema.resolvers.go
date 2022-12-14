@@ -22,10 +22,10 @@ import (
 
 // JoinVoiceRoom is the resolver for the joinVoiceRoom field.
 func (r *mutationResolver) JoinVoiceRoom(ctx context.Context, id string) (string, error) {
-	roomIds, err := repository.VoiceRoomRepository.FindMemberIdsInRoomByRoomId(id)
-	if err != nil {
-		return nil, utils.UserInputError()
-	}
+	// roomIds, err := repository.VoiceRoomRepository.FindMemberIdsInRoomByRoomId(id)
+	// if err != nil {
+	// 	return nil, utils.UserInputError()
+	// }
 
 	panic(fmt.Errorf("not implemented: JoinVoiceRoom - joinVoiceRoom"))
 }

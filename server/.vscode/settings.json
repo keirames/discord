@@ -1,10 +1,13 @@
 {
   "cSpell.words": [
+    "dbname",
     "goccy",
     "gqlgen",
     "gqlparser",
+    "jmoiron",
     "joho",
     "segmentio",
+    "sqlx",
     "vektah"
   ]
 }
