@@ -45,6 +45,13 @@ type DirectiveRoot struct {
 }
 
 type ComplexityRoot struct {
+	Guild struct {
+		CreatedAt     func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Title         func(childComplexity int) int
+		VoiceChannels func(childComplexity int) int
+	}
+
 	Message struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
@@ -65,12 +72,12 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Guild    func(childComplexity int, id string) int
+		Guilds   func(childComplexity int) int
 		Me       func(childComplexity int) int
 		Messages func(childComplexity int, roomID string) int
 		Room     func(childComplexity int, id string) int
 		Rooms    func(childComplexity int) int
-		Server   func(childComplexity int, id string) int
-		Servers  func(childComplexity int) int
 	}
 
 	Room struct {
@@ -78,13 +85,6 @@ type ComplexityRoot struct {
 		Members  func(childComplexity int) int
 		Messages func(childComplexity int) int
 		Title    func(childComplexity int) int
-	}
-
-	Server struct {
-		CreatedAt     func(childComplexity int) int
-		ID            func(childComplexity int) int
-		Title         func(childComplexity int) int
-		VoiceChannels func(childComplexity int) int
 	}
 
 	User struct {
@@ -120,8 +120,8 @@ type QueryResolver interface {
 	Rooms(ctx context.Context) ([]*model.Room, error)
 	Room(ctx context.Context, id string) (*model.Room, error)
 	Messages(ctx context.Context, roomID string) ([]*model.Message, error)
-	Servers(ctx context.Context) ([]*model.Server, error)
-	Server(ctx context.Context, id string) (*model.Server, error)
+	Guilds(ctx context.Context) ([]*model.Guild, error)
+	Guild(ctx context.Context, id string) (*model.Guild, error)
 }
 
 type executableSchema struct {
@@ -138,6 +138,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 	ec := executionContext{nil, e}
 	_ = ec
 	switch typeName + "." + field {
+
+	case "Guild.createdAt":
+		if e.complexity.Guild.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.Guild.CreatedAt(childComplexity), true
+
+	case "Guild.id":
+		if e.complexity.Guild.ID == nil {
+			break
+		}
+
+		return e.complexity.Guild.ID(childComplexity), true
+
+	case "Guild.title":
+		if e.complexity.Guild.Title == nil {
+			break
+		}
+
+		return e.complexity.Guild.Title(childComplexity), true
+
+	case "Guild.voiceChannels":
+		if e.complexity.Guild.VoiceChannels == nil {
+			break
+		}
+
+		return e.complexity.Guild.VoiceChannels(childComplexity), true
 
 	case "Message.createdAt":
 		if e.complexity.Message.CreatedAt == nil {
@@ -270,6 +298,25 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SignIn(childComplexity, args["name"].(string)), true
 
+	case "Query.guild":
+		if e.complexity.Query.Guild == nil {
+			break
+		}
+
+		args, err := ec.field_Query_guild_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Guild(childComplexity, args["id"].(string)), true
+
+	case "Query.guilds":
+		if e.complexity.Query.Guilds == nil {
+			break
+		}
+
+		return e.complexity.Query.Guilds(childComplexity), true
+
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
 			break
@@ -308,25 +355,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Rooms(childComplexity), true
 
-	case "Query.server":
-		if e.complexity.Query.Server == nil {
-			break
-		}
-
-		args, err := ec.field_Query_server_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Server(childComplexity, args["id"].(string)), true
-
-	case "Query.servers":
-		if e.complexity.Query.Servers == nil {
-			break
-		}
-
-		return e.complexity.Query.Servers(childComplexity), true
-
 	case "Room.id":
 		if e.complexity.Room.ID == nil {
 			break
@@ -354,34 +382,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Room.Title(childComplexity), true
-
-	case "Server.createdAt":
-		if e.complexity.Server.CreatedAt == nil {
-			break
-		}
-
-		return e.complexity.Server.CreatedAt(childComplexity), true
-
-	case "Server.id":
-		if e.complexity.Server.ID == nil {
-			break
-		}
-
-		return e.complexity.Server.ID(childComplexity), true
-
-	case "Server.title":
-		if e.complexity.Server.Title == nil {
-			break
-		}
-
-		return e.complexity.Server.Title(childComplexity), true
-
-	case "Server.voiceChannels":
-		if e.complexity.Server.VoiceChannels == nil {
-			break
-		}
-
-		return e.complexity.Server.VoiceChannels(childComplexity), true
 
 	case "User.id":
 		if e.complexity.User.ID == nil {
@@ -522,7 +522,7 @@ type Room {
   messages: [Message!]!
 }
 
-type Server {
+type Guild {
   id: ID!
   title: String!
   createdAt: String!
@@ -569,8 +569,8 @@ type Query {
   rooms: [Room!]! @auth
   room(id: ID!): Room! @auth
   messages(roomId: String!): [Message!]! @auth
-  servers: [Server!]! @auth
-  server(id: ID!): Server! @auth
+  guilds: [Guild!]! @auth
+  guild(id: ID!): Guild! @auth
 }
 
 type Mutation {
@@ -753,6 +753,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_guild_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -769,21 +784,6 @@ func (ec *executionContext) field_Query_messages_args(ctx context.Context, rawAr
 }
 
 func (ec *executionContext) field_Query_room_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_server_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -835,6 +835,190 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 // endregion ************************** directives.gotpl **************************
 
 // region    **************************** field.gotpl *****************************
+
+func (ec *executionContext) _Guild_id(ctx context.Context, field graphql.CollectedField, obj *model.Guild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Guild_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Guild_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Guild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Guild_title(ctx context.Context, field graphql.CollectedField, obj *model.Guild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Guild_title(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Title, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Guild_title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Guild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Guild_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Guild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Guild_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Guild_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Guild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Guild_voiceChannels(ctx context.Context, field graphql.CollectedField, obj *model.Guild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Guild_voiceChannels(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.VoiceChannels, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.VoiceChannel)
+	fc.Result = res
+	return ec.marshalNVoiceChannel2ᚕᚖdiscordᚋgraphᚋmodelᚐVoiceChannelᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Guild_voiceChannels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Guild",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_VoiceChannel_id(ctx, field)
+			case "title":
+				return ec.fieldContext_VoiceChannel_title(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_VoiceChannel_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type VoiceChannel", field.Name)
+		},
+	}
+	return fc, nil
+}
 
 func (ec *executionContext) _Message_id(ctx context.Context, field graphql.CollectedField, obj *model.Message) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Message_id(ctx, field)
@@ -2001,8 +2185,8 @@ func (ec *executionContext) fieldContext_Query_messages(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_servers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_servers(ctx, field)
+func (ec *executionContext) _Query_guilds(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_guilds(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2016,7 +2200,7 @@ func (ec *executionContext) _Query_servers(ctx context.Context, field graphql.Co
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Servers(rctx)
+			return ec.resolvers.Query().Guilds(rctx)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -2032,10 +2216,10 @@ func (ec *executionContext) _Query_servers(ctx context.Context, field graphql.Co
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.([]*model.Server); ok {
+		if data, ok := tmp.([]*model.Guild); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*discord/graph/model.Server`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*discord/graph/model.Guild`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2047,12 +2231,12 @@ func (ec *executionContext) _Query_servers(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Server)
+	res := resTmp.([]*model.Guild)
 	fc.Result = res
-	return ec.marshalNServer2ᚕᚖdiscordᚋgraphᚋmodelᚐServerᚄ(ctx, field.Selections, res)
+	return ec.marshalNGuild2ᚕᚖdiscordᚋgraphᚋmodelᚐGuildᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_servers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_guilds(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2061,22 +2245,22 @@ func (ec *executionContext) fieldContext_Query_servers(ctx context.Context, fiel
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Server_id(ctx, field)
+				return ec.fieldContext_Guild_id(ctx, field)
 			case "title":
-				return ec.fieldContext_Server_title(ctx, field)
+				return ec.fieldContext_Guild_title(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Server_createdAt(ctx, field)
+				return ec.fieldContext_Guild_createdAt(ctx, field)
 			case "voiceChannels":
-				return ec.fieldContext_Server_voiceChannels(ctx, field)
+				return ec.fieldContext_Guild_voiceChannels(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Server", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Guild", field.Name)
 		},
 	}
 	return fc, nil
 }
 
-func (ec *executionContext) _Query_server(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Query_server(ctx, field)
+func (ec *executionContext) _Query_guild(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_guild(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2090,7 +2274,7 @@ func (ec *executionContext) _Query_server(ctx context.Context, field graphql.Col
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().Server(rctx, fc.Args["id"].(string))
+			return ec.resolvers.Query().Guild(rctx, fc.Args["id"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Auth == nil {
@@ -2106,10 +2290,10 @@ func (ec *executionContext) _Query_server(ctx context.Context, field graphql.Col
 		if tmp == nil {
 			return nil, nil
 		}
-		if data, ok := tmp.(*model.Server); ok {
+		if data, ok := tmp.(*model.Guild); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *discord/graph/model.Server`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *discord/graph/model.Guild`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2121,12 +2305,12 @@ func (ec *executionContext) _Query_server(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Server)
+	res := resTmp.(*model.Guild)
 	fc.Result = res
-	return ec.marshalNServer2ᚖdiscordᚋgraphᚋmodelᚐServer(ctx, field.Selections, res)
+	return ec.marshalNGuild2ᚖdiscordᚋgraphᚋmodelᚐGuild(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Query_server(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Query_guild(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Query",
 		Field:      field,
@@ -2135,15 +2319,15 @@ func (ec *executionContext) fieldContext_Query_server(ctx context.Context, field
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
-				return ec.fieldContext_Server_id(ctx, field)
+				return ec.fieldContext_Guild_id(ctx, field)
 			case "title":
-				return ec.fieldContext_Server_title(ctx, field)
+				return ec.fieldContext_Guild_title(ctx, field)
 			case "createdAt":
-				return ec.fieldContext_Server_createdAt(ctx, field)
+				return ec.fieldContext_Guild_createdAt(ctx, field)
 			case "voiceChannels":
-				return ec.fieldContext_Server_voiceChannels(ctx, field)
+				return ec.fieldContext_Guild_voiceChannels(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type Server", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Guild", field.Name)
 		},
 	}
 	defer func() {
@@ -2153,7 +2337,7 @@ func (ec *executionContext) fieldContext_Query_server(ctx context.Context, field
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Query_server_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Query_guild_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -2475,190 +2659,6 @@ func (ec *executionContext) fieldContext_Room_messages(ctx context.Context, fiel
 				return ec.fieldContext_Message_createdAt(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Message", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Server_id(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Server_id(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.ID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Server_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Server",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type ID does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Server_title(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Server_title(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Server_title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Server",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Server_createdAt(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Server_createdAt(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Server_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Server",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _Server_voiceChannels(ctx context.Context, field graphql.CollectedField, obj *model.Server) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Server_voiceChannels(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.VoiceChannels, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*model.VoiceChannel)
-	fc.Result = res
-	return ec.marshalNVoiceChannel2ᚕᚖdiscordᚋgraphᚋmodelᚐVoiceChannelᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_Server_voiceChannels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "Server",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_VoiceChannel_id(ctx, field)
-			case "title":
-				return ec.fieldContext_VoiceChannel_title(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_VoiceChannel_createdAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type VoiceChannel", field.Name)
 		},
 	}
 	return fc, nil
@@ -4869,6 +4869,55 @@ func (ec *executionContext) unmarshalInputSendMessageInput(ctx context.Context, 
 
 // region    **************************** object.gotpl ****************************
 
+var guildImplementors = []string{"Guild"}
+
+func (ec *executionContext) _Guild(ctx context.Context, sel ast.SelectionSet, obj *model.Guild) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, guildImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Guild")
+		case "id":
+
+			out.Values[i] = ec._Guild_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "title":
+
+			out.Values[i] = ec._Guild_title(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdAt":
+
+			out.Values[i] = ec._Guild_createdAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "voiceChannels":
+
+			out.Values[i] = ec._Guild_voiceChannels(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var messageImplementors = []string{"Message"}
 
 func (ec *executionContext) _Message(ctx context.Context, sel ast.SelectionSet, obj *model.Message) graphql.Marshaler {
@@ -5135,7 +5184,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "servers":
+		case "guilds":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -5144,7 +5193,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_servers(ctx, field)
+				res = ec._Query_guilds(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -5158,7 +5207,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
-		case "server":
+		case "guild":
 			field := field
 
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -5167,7 +5216,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_server(ctx, field)
+				res = ec._Query_guild(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -5235,55 +5284,6 @@ func (ec *executionContext) _Room(ctx context.Context, sel ast.SelectionSet, obj
 		case "messages":
 
 			out.Values[i] = ec._Room_messages(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var serverImplementors = []string{"Server"}
-
-func (ec *executionContext) _Server(ctx context.Context, sel ast.SelectionSet, obj *model.Server) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, serverImplementors)
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("Server")
-		case "id":
-
-			out.Values[i] = ec._Server_id(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "title":
-
-			out.Values[i] = ec._Server_title(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdAt":
-
-			out.Values[i] = ec._Server_createdAt(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "voiceChannels":
-
-			out.Values[i] = ec._Server_voiceChannels(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -5751,6 +5751,64 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) marshalNGuild2discordᚋgraphᚋmodelᚐGuild(ctx context.Context, sel ast.SelectionSet, v model.Guild) graphql.Marshaler {
+	return ec._Guild(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNGuild2ᚕᚖdiscordᚋgraphᚋmodelᚐGuildᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Guild) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNGuild2ᚖdiscordᚋgraphᚋmodelᚐGuild(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNGuild2ᚖdiscordᚋgraphᚋmodelᚐGuild(ctx context.Context, sel ast.SelectionSet, v *model.Guild) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._Guild(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
 	res, err := graphql.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -5890,64 +5948,6 @@ func (ec *executionContext) marshalNRoom2ᚖdiscordᚋgraphᚋmodelᚐRoom(ctx c
 func (ec *executionContext) unmarshalNSendMessageInput2discordᚋgraphᚋmodelᚐSendMessageInput(ctx context.Context, v interface{}) (model.SendMessageInput, error) {
 	res, err := ec.unmarshalInputSendMessageInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNServer2discordᚋgraphᚋmodelᚐServer(ctx context.Context, sel ast.SelectionSet, v model.Server) graphql.Marshaler {
-	return ec._Server(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNServer2ᚕᚖdiscordᚋgraphᚋmodelᚐServerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Server) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNServer2ᚖdiscordᚋgraphᚋmodelᚐServer(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) marshalNServer2ᚖdiscordᚋgraphᚋmodelᚐServer(ctx context.Context, sel ast.SelectionSet, v *model.Server) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	return ec._Server(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

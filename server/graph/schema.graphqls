@@ -11,7 +11,7 @@ type Room {
   messages: [Message!]!
 }
 
-type Server {
+type Guild {
   id: ID!
   title: String!
   createdAt: String!
@@ -58,8 +58,8 @@ type Query {
   rooms: [Room!]! @auth
   room(id: ID!): Room! @auth
   messages(roomId: String!): [Message!]! @auth
-  servers: [Server!]! @auth
-  server(id: ID!): Server! @auth
+  guilds: [Guild!]! @auth
+  guild(id: ID!): Guild! @auth
 }
 
 type Mutation {

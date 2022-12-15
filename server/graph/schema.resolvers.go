@@ -190,6 +190,7 @@ func (r *mutationResolver) DeleteMessage(ctx context.Context, messageID string) 
 func (r *mutationResolver) SignIn(ctx context.Context, name string) (string, error) {
 	user, err := repository.UserRepo.FindByName(name)
 	if err != nil {
+		fmt.Println(err)
 		return "", utils.UserInputError()
 	}
 
@@ -372,6 +373,16 @@ func (r *queryResolver) Messages(ctx context.Context, roomID string) ([]*model.M
 	utils.Throw(db.Q.Select(&messages, sql, args...))
 
 	return entities.MapMessagesToModel(messages), nil
+}
+
+// Guilds is the resolver for the guilds field.
+func (r *queryResolver) Guilds(ctx context.Context) ([]*model.Guild, error) {
+	return guilds(ctx)
+}
+
+// Guild is the resolver for the guild field.
+func (r *queryResolver) Guild(ctx context.Context, id string) (*model.Guild, error) {
+	return guild(ctx, id)
 }
 
 // Mutation returns generated.MutationResolver implementation.

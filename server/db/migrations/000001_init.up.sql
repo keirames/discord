@@ -4,7 +4,7 @@ create table users (
 	created_at timestamp with time zone default now()
 );
 
-create table servers (
+create table guilds (
 	id uuid primary key default uuid_generate_v4(),
 	title varchar(255) not null,
 	created_at timestamp with time zone default now()
@@ -13,7 +13,10 @@ create table servers (
 create table voice_channels (
 	id uuid primary key default uuid_generate_v4(),
 	title varchar(255) not null,
-	created_at timestamp with time zone default now()
+	created_at timestamp with time zone default now(),
+	guild_id uuid not null,
+
+	foreign key(guild_id) references guilds(id)
 );
 
 create table voice_channels_users(

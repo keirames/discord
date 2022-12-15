@@ -6,11 +6,11 @@ insert into users(id, name)
   ('6fef0974-1302-41dd-ace5-f3a9de90fd78', 'Michael'),
   ('ec64f3ba-8ab7-4076-b602-fcc7523ac7f6', 'Charles');
 
-insert into servers(id, title)
+insert into guilds(id, title)
 values ('1789cd44-eace-4242-9d8b-80b612378e92', 'test server');
 
-insert into voice_channels(id, title)
-values ('b9d5a7c1-ef32-4f71-8621-b254a4cbd561', 'gaming');
+insert into voice_channels(id, title, guild_id)
+values ('b9d5a7c1-ef32-4f71-8621-b254a4cbd561', 'gaming', '1789cd44-eace-4242-9d8b-80b612378e92');
 
 insert into voice_channels_users(user_id, voice_channel_id)
 values ('14cb7695-0a3c-4ab4-9bb5-63bbb2f3495d','b9d5a7c1-ef32-4f71-8621-b254a4cbd561');

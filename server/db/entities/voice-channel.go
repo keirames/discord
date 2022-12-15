@@ -6,6 +6,7 @@ type VoiceChannel struct {
 	ID        string `db:"id"`
 	Title     string `db:"title"`
 	CreatedAt string `db:"created_at"`
+	GuildId   string `db:"guild_id"`
 }
 
 func MapVoiceChannelToModel(vc VoiceChannel) *model.VoiceChannel {

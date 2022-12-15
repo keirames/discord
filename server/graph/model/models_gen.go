@@ -2,6 +2,13 @@
 
 package model
 
+type Guild struct {
+	ID            string          `json:"id"`
+	Title         string          `json:"title"`
+	CreatedAt     string          `json:"createdAt"`
+	VoiceChannels []*VoiceChannel `json:"voiceChannels"`
+}
+
 type Message struct {
 	ID        string `json:"id"`
 	Text      string `json:"text"`
@@ -25,13 +32,6 @@ type Room struct {
 type SendMessageInput struct {
 	RoomID string `json:"roomId"`
 	Text   string `json:"text"`
-}
-
-type Server struct {
-	ID            string          `json:"id"`
-	Title         string          `json:"title"`
-	CreatedAt     string          `json:"createdAt"`
-	VoiceChannels []*VoiceChannel `json:"voiceChannels"`
 }
 
 type User struct {

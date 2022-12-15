@@ -3,8 +3,9 @@ package entities
 import "discord/graph/model"
 
 type User struct {
-	ID   string `db:"id"`
-	Name string `db:"name"`
+	ID        string `db:"id"`
+	Name      string `db:"name"`
+	CreatedAt string `db:"created_at"`
 }
 
 func MapUserToModel(u User) model.User {
