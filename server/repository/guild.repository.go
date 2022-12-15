@@ -12,6 +12,17 @@ type guild struct{}
 
 var Guild guild
 
+func (sr guild) FindAll() ([]entities.Guild, error) {
+	var guilds []entities.Guild
+
+	err := db.Q.Select(&guilds, "SELECT * FROM guilds")
+	if err != nil {
+		return nil, err
+	}
+
+	return guilds, nil
+}
+
 func (sr guild) FindById(id string) (*entities.Guild, error) {
 	var guild entities.Guild
 

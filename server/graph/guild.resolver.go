@@ -10,7 +10,12 @@ import (
 )
 
 func guilds(ctx context.Context) ([]*model.Guild, error) {
-	panic(fmt.Errorf("not implemented: Guilds - guilds"))
+	guilds, err := repository.Guild.FindAll()
+	if err != nil {
+		return nil, utils.UserInputError()
+	}
+
+	return entities.MapGuildsToModel(guilds), nil
 }
 
 func guild(ctx context.Context, id string) (*model.Guild, error) {

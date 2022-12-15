@@ -18,3 +18,13 @@ func MapGuildToModel(r Guild) *model.Guild {
 		VoiceChannels: MapVoiceChannelsToModel(r.VoiceChannels),
 	}
 }
+
+func MapGuildsToModel(guilds []Guild) []*model.Guild {
+	guildsModel := make([]*model.Guild, len(guilds))
+
+	for idx, guild := range guilds {
+		guildsModel[idx] = MapGuildToModel(guild)
+	}
+
+	return guildsModel
+}
