@@ -5,6 +5,19 @@ type Room {
   messages: [Message!]!
 }
 
+type Guild {
+  id: ID!
+  title: String!
+  createdAt: String!
+  voiceChannels: [VoiceChannel!]!
+}
+
+type VoiceChannel {
+  id: ID!
+  title: String!
+  createdAt: String!
+}
+
 type Message {
   id: ID!
   text: String!
@@ -28,14 +41,23 @@ input SendMessageInput {
   text: String!
 }
 
+type VoiceRoom {
+  id: ID!
+  title: String!
+  createdAt: String!
+}
+
 type Query {
   me: User!
   rooms: [Room!]!
   room(id: ID!): Room!
   messages(roomId: String!): [Message!]!
+  guilds: [Guild!]!
+  guild(id: ID!): Guild!
 }
 
 type Mutation {
+  joinVoiceRoom(id: ID!): String!
   createRoom(input: NewRoom!): Room!
   sendMessage(input: SendMessageInput!): Message!
   seen(roomId: ID!, messages: [String!]!): [String!]!
