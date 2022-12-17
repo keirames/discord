@@ -4,13 +4,28 @@ insert into users(id, name)
   ('6d06ab45-28cc-4d60-9d48-cec566342b2c', 'Robert'),
   ('855fd687-9001-4512-b317-f2a71fa57cf5', 'William'),
   ('6fef0974-1302-41dd-ace5-f3a9de90fd78', 'Michael'),
-  ('ec64f3ba-8ab7-4076-b602-fcc7523ac7f6', 'Charles');
+  ('ec64f3ba-8ab7-4076-b602-fcc7523ac7f6', 'Charles'),
+  ('e87cb19c-64d2-49e6-8f56-3b8298070155', 'CEO');
 
-insert into guilds(id, title)
-values ('1789cd44-eace-4242-9d8b-80b612378e92', 'test server');
 
-insert into voice_channels(id, title, guild_id)
-values ('b9d5a7c1-ef32-4f71-8621-b254a4cbd561', 'gaming', '1789cd44-eace-4242-9d8b-80b612378e92');
+insert into guilds(id, name)
+values ('1789cd44-eace-4242-9d8b-80b612378e92', 'test server'),
+('ca65da18-092a-4b63-bdd8-92a2da208691', 'CEO test guild'),
+('03079799-9907-48fd-9d86-b2c236d1d46a', 'Rhodium'),
+('0fd77c8a-376b-41f6-a264-02ca355eb8f9', 'Iron'),
+('160966e7-7355-4677-9a03-9471277da571', 'Californium'),
+('16c43fa1-4267-4de5-a167-a414e0ea1226', 'Gadolinium'),
+('1ed62047-13b7-4ff5-b4cb-802103a25043', 'Nitrogen'),
+('25c90626-7d56-4db0-9d1f-6a2455bde62f', 'Gold');
+
+insert into guilds_users(user_id, guild_id)
+values ('e87cb19c-64d2-49e6-8f56-3b8298070155', '1789cd44-eace-4242-9d8b-80b612378e92'),
+('e87cb19c-64d2-49e6-8f56-3b8298070155', 'ca65da18-092a-4b63-bdd8-92a2da208691'),
+('8e8c6c7c-1180-4539-b7b4-f97d88f98552', 'ca65da18-092a-4b63-bdd8-92a2da208691');
+
+insert into voice_channels(id, name, guild_id)
+values ('b9d5a7c1-ef32-4f71-8621-b254a4cbd561', 'gaming', '1789cd44-eace-4242-9d8b-80b612378e92'),
+('1a5ffb2b-1c6f-49d8-aa23-c63152af8e15', 'gaming', 'ca65da18-092a-4b63-bdd8-92a2da208691');
 
 insert into voice_channels_users(user_id, voice_channel_id)
 values ('14cb7695-0a3c-4ab4-9bb5-63bbb2f3495d','b9d5a7c1-ef32-4f71-8621-b254a4cbd561');

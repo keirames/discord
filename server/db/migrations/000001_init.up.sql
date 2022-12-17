@@ -1,18 +1,18 @@
-create table users (
+create table users(
 	id uuid primary key default uuid_generate_v4(),
 	name varchar(50) not null,
 	created_at timestamp with time zone default now()
 );
 
-create table guilds (
+create table guilds(
 	id uuid primary key default uuid_generate_v4(),
-	title varchar(255) not null,
+	name varchar(255) not null,
 	created_at timestamp with time zone default now()
 );
 
-create table voice_channels (
+create table voice_channels(
 	id uuid primary key default uuid_generate_v4(),
-	title varchar(255) not null,
+	name varchar(255) not null,
 	created_at timestamp with time zone default now(),
 	guild_id uuid not null,
 
@@ -28,4 +28,15 @@ create table voice_channels_users(
 	foreign key(voice_channel_id) references voice_channels(id),
 	
 	primary key(user_id, voice_channel_id)
+);
+
+create table guilds_users(
+	user_id uuid not null,
+	guild_id uuid not null,
+	created_at timestamp with time zone default now(),
+
+	foreign key(user_id) references users(id),
+	foreign key(guild_id) references guilds(id),
+
+	primary key(user_id, guild_id)
 );
