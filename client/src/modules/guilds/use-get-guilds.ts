@@ -7,7 +7,7 @@ const document = graphql(`
   query AllGuilds {
     guilds {
       id
-      title
+      name
       createdAt
     }
   }

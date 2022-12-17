@@ -11,10 +11,10 @@ export const Guilds = () => {
       {guilds.map((guild) => (
         <div
           key={guild.id}
-          className="flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-2xl bg-blue-600"
+          className="mb-2 flex h-[50px] w-[50px] cursor-pointer items-center justify-center rounded-2xl bg-blue-600"
           onClick={() => pickGuild(guild.id)}
         >
-          <span>{guild.title.charAt(0)}</span>
+          <span>{guild.name.charAt(0)}</span>
         </div>
       ))}
     </div>
