@@ -13,14 +13,14 @@ type Room {
 
 type Guild {
   id: ID!
-  title: String!
+  name: String!
   createdAt: String!
   voiceChannels: [VoiceChannel!]!
 }
 
 type VoiceChannel {
   id: ID!
-  title: String!
+  name: String!
   createdAt: String!
 }
 

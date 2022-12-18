@@ -4,7 +4,7 @@ package model
 
 type Guild struct {
 	ID            string          `json:"id"`
-	Title         string          `json:"title"`
+	Name          string          `json:"name"`
 	CreatedAt     string          `json:"createdAt"`
 	VoiceChannels []*VoiceChannel `json:"voiceChannels"`
 }
@@ -41,7 +41,7 @@ type User struct {
 
 type VoiceChannel struct {
 	ID        string `json:"id"`
-	Title     string `json:"title"`
+	Name      string `json:"name"`
 	CreatedAt string `json:"createdAt"`
 }
 

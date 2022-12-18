@@ -4,7 +4,7 @@ import "discord/graph/model"
 
 type Guild struct {
 	ID            string         `db:"id"`
-	Title         string         `db:"title"`
+	Name          string         `db:"name"`
 	CreatedAt     string         `db:"created_at"`
 	GuildId       string         `db:"guild_id"`
 	VoiceChannels []VoiceChannel `db:"voice_channel"`
@@ -13,7 +13,7 @@ type Guild struct {
 func MapGuildToModel(r Guild) *model.Guild {
 	return &model.Guild{
 		ID:            r.ID,
-		Title:         r.Title,
+		Name:          r.Name,
 		CreatedAt:     r.CreatedAt,
 		VoiceChannels: MapVoiceChannelsToModel(r.VoiceChannels),
 	}

@@ -12,6 +12,7 @@ import (
 func guilds(ctx context.Context) ([]*model.Guild, error) {
 	guilds, err := repository.Guild.FindAll()
 	if err != nil {
+		fmt.Println(err)
 		return nil, utils.UserInputError()
 	}
 

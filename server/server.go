@@ -1,12 +1,17 @@
 package main
 
 import (
+	"context"
 	"discord/config"
 	"discord/db"
 	"discord/directives"
 	"discord/graph"
 	"discord/graph/generated"
 	"discord/middlewares"
+	"discord/repository"
+	"discord/service"
+	wsService "discord/service/ws"
+	"discord/utils"
 	"log"
 	"net/http"
 	"os"
@@ -49,30 +54,6 @@ import (
 // 	fmt.Println(sql)
 // 	fmt.Printf("%+v\n", newMessages)
 
-// var upgrader = websocket.Upgrader{
-// 	ReadBufferSize:  1024,
-// 	WriteBufferSize: 1024,
-// 	CheckOrigin:     func(r *http.Request) bool { return true },
-// }
-
-// func reader(conn *websocket.Conn) {
-// 	for {
-// 		// read in a message
-// 		messageType, p, err := conn.ReadMessage()
-// 		if err != nil {
-// 			log.Println(err)
-// 			return
-// 		}
-// 		// print out that message for clarity
-// 		log.Println(string(p))
-
-// 		if err := conn.WriteMessage(messageType, p); err != nil {
-// 			log.Println(err)
-// 			return
-// 		}
-// 	}
-// }
-
 func main() {
 	config.LoadEnv()
 
@@ -82,6 +63,10 @@ func main() {
 	// kafkaRepo.KafkaService.Connect()
 
 	router := chi.NewRouter()
+
+	// WsHub control all users
+	wsHub := wsService.NewWsHub()
+	go wsHub.Run()
 
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
@@ -98,21 +83,29 @@ func main() {
 
 	router.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	router.Handle("/query", srv)
-	// router.Handle("/ws", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	// 	ws, err := upgrader.Upgrade(w, r, nil)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
+	router.Handle("/ws", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := r.URL.Query()
+		// TODO: should be const elsewhere ?
+		token := params.Get("token")
+		validate, err := service.ValidateJwt(context.Background(), token)
+		if err != nil {
+			utils.HttpUnauthorized(w)
+			return
+		}
+		customClaims, ok := validate.Claims.(*service.JwtCustomClaim)
+		if !ok {
+			utils.HttpUnauthorized(w)
+			return
+		}
 
-	// 	log.Println("Client Connected")
-	// 	err = ws.WriteMessage(1, []byte("Hi Client!"))
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 	}
-	// 	// listen indefinitely for new messages coming
-	// 	// through on our WebSocket connection
-	// 	reader(ws)
-	// }))
+		_, err = repository.UserRepo.FindByID(customClaims.UserID)
+		if err != nil {
+			utils.HttpUnauthorized(w)
+			return
+		}
+
+		wsService.WsHandler(wsHub, customClaims.UserID, w, r)
+	}))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, router))

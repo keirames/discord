@@ -4,7 +4,7 @@ import "discord/graph/model"
 
 type VoiceChannel struct {
 	ID        string `db:"id"`
-	Title     string `db:"title"`
+	Name      string `db:"name"`
 	CreatedAt string `db:"created_at"`
 	GuildId   string `db:"guild_id"`
 }
@@ -12,7 +12,7 @@ type VoiceChannel struct {
 func MapVoiceChannelToModel(vc VoiceChannel) *model.VoiceChannel {
 	return &model.VoiceChannel{
 		ID:        vc.ID,
-		Title:     vc.Title,
+		Name:      vc.Name,
 		CreatedAt: vc.CreatedAt,
 	}
 }

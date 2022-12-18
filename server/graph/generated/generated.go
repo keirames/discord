@@ -48,7 +48,7 @@ type ComplexityRoot struct {
 	Guild struct {
 		CreatedAt     func(childComplexity int) int
 		ID            func(childComplexity int) int
-		Title         func(childComplexity int) int
+		Name          func(childComplexity int) int
 		VoiceChannels func(childComplexity int) int
 	}
 
@@ -95,7 +95,7 @@ type ComplexityRoot struct {
 	VoiceChannel struct {
 		CreatedAt func(childComplexity int) int
 		ID        func(childComplexity int) int
-		Title     func(childComplexity int) int
+		Name      func(childComplexity int) int
 	}
 
 	VoiceRoom struct {
@@ -153,12 +153,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Guild.ID(childComplexity), true
 
-	case "Guild.title":
-		if e.complexity.Guild.Title == nil {
+	case "Guild.name":
+		if e.complexity.Guild.Name == nil {
 			break
 		}
 
-		return e.complexity.Guild.Title(childComplexity), true
+		return e.complexity.Guild.Name(childComplexity), true
 
 	case "Guild.voiceChannels":
 		if e.complexity.Guild.VoiceChannels == nil {
@@ -411,12 +411,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.VoiceChannel.ID(childComplexity), true
 
-	case "VoiceChannel.title":
-		if e.complexity.VoiceChannel.Title == nil {
+	case "VoiceChannel.name":
+		if e.complexity.VoiceChannel.Name == nil {
 			break
 		}
 
-		return e.complexity.VoiceChannel.Title(childComplexity), true
+		return e.complexity.VoiceChannel.Name(childComplexity), true
 
 	case "VoiceRoom.createdAt":
 		if e.complexity.VoiceRoom.CreatedAt == nil {
@@ -524,14 +524,14 @@ type Room {
 
 type Guild {
   id: ID!
-  title: String!
+  name: String!
   createdAt: String!
   voiceChannels: [VoiceChannel!]!
 }
 
 type VoiceChannel {
   id: ID!
-  title: String!
+  name: String!
   createdAt: String!
 }
 
@@ -880,8 +880,8 @@ func (ec *executionContext) fieldContext_Guild_id(ctx context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _Guild_title(ctx context.Context, field graphql.CollectedField, obj *model.Guild) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Guild_title(ctx, field)
+func (ec *executionContext) _Guild_name(ctx context.Context, field graphql.CollectedField, obj *model.Guild) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Guild_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -894,7 +894,7 @@ func (ec *executionContext) _Guild_title(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
+		return obj.Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -911,7 +911,7 @@ func (ec *executionContext) _Guild_title(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Guild_title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Guild_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Guild",
 		Field:      field,
@@ -1009,8 +1009,8 @@ func (ec *executionContext) fieldContext_Guild_voiceChannels(ctx context.Context
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_VoiceChannel_id(ctx, field)
-			case "title":
-				return ec.fieldContext_VoiceChannel_title(ctx, field)
+			case "name":
+				return ec.fieldContext_VoiceChannel_name(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_VoiceChannel_createdAt(ctx, field)
 			}
@@ -2246,8 +2246,8 @@ func (ec *executionContext) fieldContext_Query_guilds(ctx context.Context, field
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Guild_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Guild_title(ctx, field)
+			case "name":
+				return ec.fieldContext_Guild_name(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Guild_createdAt(ctx, field)
 			case "voiceChannels":
@@ -2320,8 +2320,8 @@ func (ec *executionContext) fieldContext_Query_guild(ctx context.Context, field 
 			switch field.Name {
 			case "id":
 				return ec.fieldContext_Guild_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Guild_title(ctx, field)
+			case "name":
+				return ec.fieldContext_Guild_name(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_Guild_createdAt(ctx, field)
 			case "voiceChannels":
@@ -2796,8 +2796,8 @@ func (ec *executionContext) fieldContext_VoiceChannel_id(ctx context.Context, fi
 	return fc, nil
 }
 
-func (ec *executionContext) _VoiceChannel_title(ctx context.Context, field graphql.CollectedField, obj *model.VoiceChannel) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_VoiceChannel_title(ctx, field)
+func (ec *executionContext) _VoiceChannel_name(ctx context.Context, field graphql.CollectedField, obj *model.VoiceChannel) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_VoiceChannel_name(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2810,7 +2810,7 @@ func (ec *executionContext) _VoiceChannel_title(ctx context.Context, field graph
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Title, nil
+		return obj.Name, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2827,7 +2827,7 @@ func (ec *executionContext) _VoiceChannel_title(ctx context.Context, field graph
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_VoiceChannel_title(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_VoiceChannel_name(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "VoiceChannel",
 		Field:      field,
@@ -4886,9 +4886,9 @@ func (ec *executionContext) _Guild(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "title":
+		case "name":
 
-			out.Values[i] = ec._Guild_title(ctx, field, obj)
+			out.Values[i] = ec._Guild_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++
@@ -5351,9 +5351,9 @@ func (ec *executionContext) _VoiceChannel(ctx context.Context, sel ast.Selection
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "title":
+		case "name":
 
-			out.Values[i] = ec._VoiceChannel_title(ctx, field, obj)
+			out.Values[i] = ec._VoiceChannel_name(ctx, field, obj)
 
 			if out.Values[i] == graphql.Null {
 				invalids++

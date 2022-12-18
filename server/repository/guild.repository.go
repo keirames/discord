@@ -30,7 +30,7 @@ func (sr guild) FindById(id string) (*entities.Guild, error) {
 		squirrel.
 			Select(`guilds.*,
 							vc.id as "voice_channel.id",
-							vc.title as "voice_channel.title",
+							vc.name as "voice_channel.name",
 							vc.created_at as "voice_channel.created_at",
 							vc.guild_id as "voice_channel.guild_id"`).
 			From("guilds").
@@ -52,7 +52,7 @@ func (sr guild) FindById(id string) (*entities.Guild, error) {
 		type rowGuild struct {
 			entities.Guild
 			VoiceChannelID        string `db:"voice_channel.id"`
-			VoiceChannelTitle     string `db:"voice_channel.title"`
+			VoiceChannelName      string `db:"voice_channel.name"`
 			VoiceChannelCreatedAt string `db:"voice_channel.created_at"`
 			VoiceChannelGuildId   string `db:"voice_channel.guild_id"`
 		}
@@ -64,11 +64,11 @@ func (sr guild) FindById(id string) (*entities.Guild, error) {
 		}
 
 		guild.ID = row.ID
-		guild.Title = row.Title
+		guild.Name = row.Name
 		guild.CreatedAt = row.CreatedAt
 		guild.VoiceChannels = append(guild.VoiceChannels, entities.VoiceChannel{
 			ID:        row.VoiceChannelID,
-			Title:     row.VoiceChannelTitle,
+			Name:      row.VoiceChannelName,
 			CreatedAt: row.VoiceChannelCreatedAt,
 			GuildId:   row.VoiceChannelGuildId,
 		})
