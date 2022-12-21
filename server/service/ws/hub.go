@@ -37,6 +37,11 @@ type Client struct {
 	conn  *websocket.Conn
 }
 
+type DirectMessage struct {
+	Id      string
+	Payload string
+}
+
 // Hub maintains the set of active clients to transfer message when necessarily
 type WsHub struct {
 	// Registered clients.
@@ -48,7 +53,7 @@ type WsHub struct {
 	// Unregister requests from clients.
 	unregister chan *Client
 
-	events chan []byte
+	Direct chan *DirectMessage
 }
 
 func NewWsHub() *WsHub {
@@ -56,6 +61,7 @@ func NewWsHub() *WsHub {
 		clients:    make(map[*Client]bool),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
+		Direct:     make(chan *DirectMessage),
 	}
 }
 
@@ -72,8 +78,19 @@ func (h *WsHub) Run() {
 				// close any channel of this client
 			}
 
-			// case raw := <-h.events:
-
+		case msg := <-h.Direct:
+			fmt.Printf("%+v", msg)
+			fmt.Println("got msg -> direct to ", msg.Id)
+			for c := range h.clients {
+				if c.id == msg.Id {
+					c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+					w, err := c.conn.NextWriter(websocket.TextMessage)
+					if err != nil {
+						break
+					}
+					w.Write([]byte(msg.Payload))
+				}
+			}
 		}
 	}
 }

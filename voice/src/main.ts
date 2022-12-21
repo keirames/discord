@@ -38,7 +38,7 @@ export const main = async () => {
   const producer = kafka.producer();
   await producer.connect();
 
-  const consumer = kafka.consumer({ groupId: 'uniq' });
+  const consumer = kafka.consumer({ groupId: 'unique' });
   await consumer.connect();
   await consumer.subscribe({ topics: ['join_as_speaker'] });
   await consumer.run({

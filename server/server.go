@@ -12,6 +12,8 @@ import (
 	"discord/service"
 	wsService "discord/service/ws"
 	"discord/utils"
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -21,6 +23,7 @@ import (
 	"github.com/go-chi/chi"
 	_ "github.com/lib/pq"
 	"github.com/rs/cors"
+	"github.com/segmentio/kafka-go"
 )
 
 // type User struct {
@@ -54,6 +57,40 @@ import (
 // 	fmt.Println(sql)
 // 	fmt.Printf("%+v\n", newMessages)
 
+func consume(h *wsService.WsHub) {
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{"localhost:9092"},
+		// TODO: learn further about group id
+		GroupID:  "uniq",
+		Topic:    "you_joined_as_speaker",
+		MinBytes: 10e3, // 10KB
+		MaxBytes: 10e6, // 10MB
+	})
+
+	for {
+		m, err := r.ReadMessage(context.Background())
+		if err != nil {
+			break
+		}
+		// fmt.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
+		type data struct {
+			PeerId string `json:"peerId"`
+		}
+		var d data
+		if err = json.Unmarshal(m.Value, &d); err != nil {
+			continue
+		}
+
+		fmt.Println("got data from you_joined_as_speaker")
+		dm := &wsService.DirectMessage{Id: d.PeerId, Payload: string(m.Value)}
+		h.Direct <- dm
+	}
+
+	if err := r.Close(); err != nil {
+		log.Fatal("failed to close reader:", err)
+	}
+}
+
 func main() {
 	config.LoadEnv()
 
@@ -67,6 +104,9 @@ func main() {
 	// WsHub control all users
 	wsHub := wsService.NewWsHub()
 	go wsHub.Run()
+
+	// kafka consumers
+	go consume(wsHub)
 
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
