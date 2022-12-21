@@ -2,6 +2,8 @@ package wsService
 
 import (
 	"bytes"
+	kafkaRepo "discord/kafka_repo"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -76,6 +78,41 @@ func (h *WsHub) Run() {
 	}
 }
 
+func handleSocketPayloadEvents(c *Client, payload []byte) {
+	type EventData struct {
+		EventName string `json:"eventName"`
+		Payload   string `json:"payload"`
+	}
+	var eventData EventData
+	if err := json.Unmarshal(payload, &eventData); err != nil {
+		log.Printf("error: %v", err)
+		return
+	}
+
+	switch eventData.EventName {
+	case "voice-channel/join":
+		type VoiceChannelJoinEvent struct {
+			RoomId string `json:"roomId"`
+		}
+		var vcJoinEvent VoiceChannelJoinEvent
+		if err := json.Unmarshal([]byte(eventData.Payload), &vcJoinEvent); err != nil {
+			log.Printf("error: %v", err)
+			return
+		}
+
+		type Data struct {
+			RoomId string `json:"roomId"`
+			UserId string `json:"userId"`
+		}
+		kafkaMsg := Data{RoomId: vcJoinEvent.RoomId, UserId: c.id}
+		kafkaMsgRaw, _ := json.Marshal(kafkaMsg)
+		kafkaRepo.SendMessage("voice_channel_join", string(kafkaMsgRaw))
+
+	default:
+		fmt.Println("unknown event -> skip")
+	}
+}
+
 // readPump pumps messages from the websocket connection to the hub.
 func (c *Client) readPump() {
 	defer func() {
@@ -91,7 +128,7 @@ func (c *Client) readPump() {
 	})
 
 	for {
-		_, raw, err := c.conn.ReadMessage()
+		_, payload, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
@@ -99,7 +136,8 @@ func (c *Client) readPump() {
 			break
 		}
 
-		raw = bytes.TrimSpace(bytes.Replace(raw, newline, space, -1))
-		c.wsHub.events <- raw
+		payload = bytes.TrimSpace(bytes.Replace(payload, newline, space, -1))
+
+		handleSocketPayloadEvents(c, payload)
 	}
 }

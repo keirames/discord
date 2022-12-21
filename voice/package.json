@@ -1,0 +1,10 @@
+{
+  "devDependencies": {
+    "@types/node": "^18.11.17",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.3",
+    "mediasoup": "^3.11.4"
+  }
+}
