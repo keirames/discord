@@ -66,10 +66,12 @@ func consume(h *wsService.WsHub) {
 		MinBytes: 10e3, // 10KB
 		MaxBytes: 10e6, // 10MB
 	})
+	fmt.Println("subscribe into topic you_joined_as_speaker")
 
 	for {
 		m, err := r.ReadMessage(context.Background())
 		if err != nil {
+			fmt.Println(err)
 			break
 		}
 		// fmt.Printf("message at topic/partition/offset %v/%v/%v: %s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))

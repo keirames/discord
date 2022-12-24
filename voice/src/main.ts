@@ -1,17 +1,23 @@
-import { Worker, Router } from 'mediasoup/node/lib/types';
-import { Kafka } from 'kafkajs';
+import {
+  Worker,
+  Router,
+  DtlsParameters,
+  RtpParameters,
+  MediaKind,
+} from 'mediasoup/node/lib/types';
+import { EachMessageHandler, Kafka } from 'kafkajs';
 import { MyRooms } from './types';
 import { startMediasoup } from './utils/start-mediasoup';
 import { createTransport, transportToOptions } from './utils/create-transport';
 
 const rooms: MyRooms = {};
 
-export const main = async () => {
-  const kafka = new Kafka({
-    clientId: 'my-app',
-    brokers: ['localhost:9092'],
-  });
+const kafka = new Kafka({
+  clientId: 'my-app',
+  brokers: ['localhost:9092'],
+});
 
+export const main = async () => {
   let workers: { worker: Worker; router: Router }[] = [];
   let workerIdx = 0;
 
@@ -44,7 +50,7 @@ export const main = async () => {
   await consumer.run({
     eachMessage: async ({ topic, partition, message, heartbeat, pause }) => {
       const { value } = message;
-      console.log(value);
+      console.log('got data from topic join_as_speaker');
 
       if (!value) return;
 
@@ -73,7 +79,7 @@ export const main = async () => {
           consumers: [],
         };
 
-        producer.send({
+        await producer.send({
           topic: 'you_joined_as_speaker',
           messages: [
             {
@@ -88,8 +94,96 @@ export const main = async () => {
           ],
         });
       } catch (err) {
+        console.log(err);
         return;
       }
     },
   });
+
+  await consume({
+    topic: 'connect_transport',
+    groupId: 'cg-connect_transport',
+    eachMessage: async ({ message }) => {
+      const { value } = message;
+
+      if (!value) return;
+      console.log('got value from topic connect_transport');
+
+      type Data = {
+        roomId: string;
+        peerId: string;
+        dtlsParameters: DtlsParameters;
+      };
+      const { roomId, peerId, dtlsParameters }: Data = JSON.parse(
+        value.toString(),
+      );
+
+      // ignore if room or peer not exist
+      if (!rooms[roomId]?.state[peerId]) return;
+
+      const { state } = rooms[roomId];
+      const transport = state[peerId].sendTransport;
+      if (!transport) return;
+
+      try {
+        await transport.connect({ dtlsParameters });
+      } catch (err) {
+        console.log('transport connect issue: ', err);
+        return;
+      }
+    },
+  });
+
+  await consume({
+    topic: 'send_track',
+    groupId: 'cg-send_track',
+    eachMessage: async ({ message }) => {
+      const { value } = message;
+
+      if (!value) return;
+      console.log('got value from topic send_track');
+
+      type Data = {
+        roomId: string;
+        peerId: string;
+        rtpParameters: RtpParameters;
+        kind: MediaKind;
+        appData: any;
+      };
+      const { roomId, peerId, rtpParameters, kind, appData }: Data = JSON.parse(
+        value.toString(),
+      );
+
+      // ignore if room or peer not exist
+      if (!rooms[roomId]?.state[peerId]) return;
+
+      const { state } = rooms[roomId];
+      const { sendTransport, producer, consumers } = state[peerId];
+
+      const transport = sendTransport;
+      if (!transport) return;
+
+      const newProducer = await transport.produce({
+        kind,
+        rtpParameters,
+        appData,
+      });
+      rooms[roomId].state[peerId].producer = newProducer;
+
+      console.log('assign new producer into', 'room:', roomId, 'peer:', peerId);
+    },
+  });
+};
+
+const consume = async (options: {
+  topic: string;
+  groupId: string;
+  eachMessage: EachMessageHandler;
+}) => {
+  const { topic, groupId, eachMessage } = options;
+
+  const consumer = kafka.consumer({ groupId });
+  await consumer.connect();
+  await consumer.subscribe({ topics: [topic] });
+  await consumer.run({ eachMessage });
 };

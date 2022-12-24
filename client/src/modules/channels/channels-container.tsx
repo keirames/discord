@@ -1,8 +1,9 @@
 import clsx from 'clsx';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { AiFillSound } from 'react-icons/ai';
 import { useGetGuild } from '../guilds/use-get-guild';
 import { useGuildStore } from '../guilds/use-guild-store';
+import { useWebsocket } from '../ws/useWebsocket';
 import { useVoiceChannelStore } from './use-voice-channel-store';
 
 const EmptyChannels = () => {
@@ -19,6 +20,23 @@ const Channels: React.FC<Props> = (props) => {
   const { data } = useGetGuild(guildId);
 
   const { pickChannel, pickedChannel } = useVoiceChannelStore();
+
+  const [track, setTrack] = useState<MediaStreamTrack | null>(null);
+
+  const { websocket } = useWebsocket(track);
+
+  useEffect(() => {
+    const getTracks = async () => {
+      // voice track
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      const tracks = mediaStream.getAudioTracks();
+      setTrack(tracks[0]);
+    };
+
+    getTracks();
+  }, []);
 
   if (!data) return null;
 
@@ -39,7 +57,18 @@ const Channels: React.FC<Props> = (props) => {
                 true,
               'bg-dark-600': pickedChannel === vc.id,
             })}
-            onClick={() => pickChannel(vc.id)}
+            onClick={async () => {
+              pickChannel(vc.id);
+
+              if (websocket) {
+                websocket.send(
+                  JSON.stringify({
+                    eventName: 'voice-channel/join',
+                    payload: JSON.stringify({ roomId: 'abc' }),
+                  }),
+                );
+              }
+            }}
           >
             <AiFillSound />
             <span className="mx-2 capitalize">{vc.name}</span>

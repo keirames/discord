@@ -22,7 +22,7 @@ const (
 	pingPeriod = (pongWait * 9) / 10
 
 	// Maximum message size allowed from peer.
-	maxMessageSize = 512
+	maxMessageSize = 1024
 )
 
 var (
@@ -69,7 +69,7 @@ func (h *WsHub) Run() {
 	for {
 		select {
 		case client := <-h.register:
-			fmt.Println("some one register into wsHub")
+			fmt.Println("user register:", client.id)
 			h.clients[client] = true
 
 		case client := <-h.unregister:
@@ -79,16 +79,30 @@ func (h *WsHub) Run() {
 			}
 
 		case msg := <-h.Direct:
-			fmt.Printf("%+v", msg)
 			fmt.Println("got msg -> direct to ", msg.Id)
 			for c := range h.clients {
 				if c.id == msg.Id {
-					c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-					w, err := c.conn.NextWriter(websocket.TextMessage)
+					err := c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 					if err != nil {
+						fmt.Println(err)
 						break
 					}
-					w.Write([]byte(msg.Payload))
+
+					w, err := c.conn.NextWriter(websocket.TextMessage)
+					if err != nil {
+						fmt.Println(err)
+						break
+					}
+
+					_, err = w.Write([]byte(msg.Payload))
+					if err != nil {
+						fmt.Println(err)
+						break
+					}
+
+					if err := w.Close(); err != nil {
+						fmt.Println(err)
+					}
 				}
 			}
 		}
@@ -119,11 +133,20 @@ func handleSocketPayloadEvents(c *Client, payload []byte) {
 
 		type Data struct {
 			RoomId string `json:"roomId"`
-			UserId string `json:"userId"`
+			PeerId string `json:"peerId"`
 		}
-		kafkaMsg := Data{RoomId: vcJoinEvent.RoomId, UserId: c.id}
+		kafkaMsg := Data{RoomId: vcJoinEvent.RoomId, PeerId: c.id}
 		kafkaMsgRaw, _ := json.Marshal(kafkaMsg)
-		kafkaRepo.SendMessage("voice_channel_join", string(kafkaMsgRaw))
+		kafkaRepo.SendMessage("join_as_speaker", string(kafkaMsgRaw))
+		fmt.Println("produce data -> topic join_as_speaker")
+
+	case "voice-channel/connect_transport":
+		kafkaRepo.SendMessage("connect_transport", string(eventData.Payload))
+		fmt.Println("produce data -> topic connect_transport")
+
+	case "voice-channel/send_track":
+		kafkaRepo.SendMessage("send_track", string(eventData.Payload))
+		fmt.Println("produce data -> topic send_track")
 
 	default:
 		fmt.Println("unknown event -> skip")
@@ -149,9 +172,12 @@ func (c *Client) readPump() {
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
+			} else {
+				fmt.Println(err)
 			}
 			break
 		}
+		fmt.Println(string(payload))
 
 		payload = bytes.TrimSpace(bytes.Replace(payload, newline, space, -1))
 

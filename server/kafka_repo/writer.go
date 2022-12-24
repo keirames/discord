@@ -33,7 +33,6 @@ func SendMessage(topic string, msg string) {
 		Key:   []byte("random key"),
 		Value: []byte(msg),
 	})
-
 	if err != nil {
 		log.Fatal("failed to write messages:", err)
 	}
