@@ -41,8 +41,8 @@ export const main = async () => {
     throw err;
   }
 
-  const producer = kafka.producer();
-  await producer.connect();
+  const kafkaProducer = kafka.producer();
+  await kafkaProducer.connect();
 
   const consumer = kafka.consumer({ groupId: 'unique' });
   await consumer.connect();
@@ -50,9 +50,9 @@ export const main = async () => {
   await consumer.run({
     eachMessage: async ({ topic, partition, message, heartbeat, pause }) => {
       const { value } = message;
-      console.log('got data from topic join_as_speaker');
 
       if (!value) return;
+      console.log('got data from topic join_as_speaker');
 
       type Msg = {
         roomId: string;
@@ -79,7 +79,7 @@ export const main = async () => {
           consumers: [],
         };
 
-        await producer.send({
+        await kafkaProducer.send({
           topic: 'you_joined_as_speaker',
           messages: [
             {
@@ -93,6 +93,7 @@ export const main = async () => {
             },
           ],
         });
+        console.log('produce data -> you_joined_as_speaker');
       } catch (err) {
         console.log(err);
         return;
@@ -169,8 +170,21 @@ export const main = async () => {
         appData,
       });
       rooms[roomId].state[peerId].producer = newProducer;
+      newProducer.id;
 
-      console.log('assign new producer into', 'room:', roomId, 'peer:', peerId);
+      await kafkaProducer.send({
+        topic: 'send_track_done',
+        messages: [
+          {
+            value: JSON.stringify({
+              roomId,
+              peerId,
+              producerId: newProducer.id,
+            }),
+          },
+        ],
+      });
+      console.log('produce -> send_track_done');
     },
   });
 };

@@ -51,4 +51,5 @@ func WsHandler(wsHub *WsHub, userId string, w http.ResponseWriter, r *http.Reque
 	// listen indefinitely for new messages coming
 	// through on our WebSocket connection
 	go client.readPump()
+	go client.writePump()
 }

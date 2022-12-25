@@ -57,11 +57,58 @@ import (
 // 	fmt.Println(sql)
 // 	fmt.Printf("%+v\n", newMessages)
 
+func consume2(h *wsService.WsHub) {
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers: []string{"localhost:9092"},
+		// TODO: learn further about group id
+		GroupID:  "send_track_done group",
+		Topic:    "send_track_done",
+		MinBytes: 10e3, // 10KB
+		MaxBytes: 10e6, // 10MB
+	})
+	fmt.Println("subscribe into topic send_track_done")
+
+	for {
+		fmt.Println("listen for new msg send_track_done")
+		m, err := r.ReadMessage(context.Background())
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+		type data struct {
+			PeerId string `json:"peerId"`
+		}
+		var d data
+		if err = json.Unmarshal(m.Value, &d); err != nil {
+			continue
+		}
+
+		type eventData struct {
+			EventName string `json:"eventName"`
+			Payload   string `json:"payload"`
+		}
+		ed := eventData{EventName: "voice-channel/send_track_done", Payload: string(m.Value)}
+		edInBytes, err := json.Marshal(ed)
+		if err != nil {
+			fmt.Println("send_track_done topic data cannot turn into bytes", err)
+			continue
+		}
+
+		fmt.Println("got data from send_track_done")
+		dm := &wsService.DirectMessage{Id: d.PeerId, Payload: string(edInBytes)}
+		h.Direct <- dm
+	}
+
+	if err := r.Close(); err != nil {
+		log.Fatal("failed to close reader:", err)
+	}
+}
+
 func consume(h *wsService.WsHub) {
 	r := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{"localhost:9092"},
 		// TODO: learn further about group id
-		GroupID:  "uniq",
+		GroupID:  "you_joined_as_speaker group",
 		Topic:    "you_joined_as_speaker",
 		MinBytes: 10e3, // 10KB
 		MaxBytes: 10e6, // 10MB
@@ -109,6 +156,7 @@ func main() {
 
 	// kafka consumers
 	go consume(wsHub)
+	go consume2(wsHub)
 
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:3000"},
