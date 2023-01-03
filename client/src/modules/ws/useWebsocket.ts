@@ -3,11 +3,18 @@ import * as mediasoupClient from 'mediasoup-client';
 import type {
   RtpCapabilities,
   TransportOptions,
+  Transport,
 } from 'mediasoup-client/lib/types';
+import { getToken } from '../../local-storage';
 
 let websocket: WebSocket | null = null;
 
-export const useWebsocket = (track: MediaStreamTrack | null) => {
+let globalRecvTransport: Transport | null = null;
+
+export const useWebsocket = (
+  track: MediaStreamTrack | null,
+  responseRef: React.RefObject<HTMLAudioElement>,
+) => {
   const ref = useRef(false);
 
   useEffect(() => {
@@ -19,9 +26,7 @@ export const useWebsocket = (track: MediaStreamTrack | null) => {
     // Cause we have broker between websocket server & voice server, there is no instantly response
     let produceCB: ({ id }: { id: string }) => void = () => {};
 
-    // TODO: move token
-    const token =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJlODdjYjE5Yy02NGQyLTQ5ZTYtOGY1Ni0zYjgyOTgwNzAxNTUiLCJleHAiOjE2NzE5ODk4ODgsImlhdCI6MTY3MTk3OTA4OH0.PUA23aLtnkYUG86hoRKz6Win9xo7H-uA-DF97nOHVSc';
+    const token = getToken();
     const ws = new WebSocket(`ws://localhost:4000/ws?token=${token}`);
 
     // setTimeout(() => {
@@ -37,6 +42,30 @@ export const useWebsocket = (track: MediaStreamTrack | null) => {
 
       const parsedMsgEvent = JSON.parse(msgEvent.data);
 
+      if (parsedMsgEvent.eventName === 'voice-channel/recv_track_done') {
+        const payload = JSON.parse(parsedMsgEvent.payload);
+        console.log('voice-channel/recv_track_done payload', payload);
+
+        // TODO: create consumer here
+        if (!globalRecvTransport) {
+          console.log('no recvTransport');
+          return;
+        }
+        const consumer = await globalRecvTransport.consume({
+          id: payload.id,
+          producerId: payload.producerId,
+          kind: payload.kind,
+          rtpParameters: payload.rtpParameters,
+        });
+        const { track } = consumer;
+        if (responseRef.current) {
+          console.log('attach response ref');
+          // responseRef.current.srcObject = new MediaStream([track]);
+        }
+
+        return;
+      }
+
       if (parsedMsgEvent.eventName === 'voice-channel/send_track_done') {
         const payload = JSON.parse(parsedMsgEvent.payload);
         console.log('voice-channel/send_track_done payload', payload);
@@ -51,6 +80,7 @@ export const useWebsocket = (track: MediaStreamTrack | null) => {
         peerId: string;
         routerRtpCapabilities: RtpCapabilities;
         sendTransportOptions: TransportOptions;
+        recvTransportOptions: TransportOptions;
       } = JSON.parse(msgEvent.data);
       console.log('payload', payload);
 
@@ -124,10 +154,40 @@ export const useWebsocket = (track: MediaStreamTrack | null) => {
 
         // close video track
       });
+
+      const recvTransport = device.createRecvTransport({
+        ...payload.recvTransportOptions,
+      });
+      globalRecvTransport = recvTransport;
+      recvTransport.on('connect', ({ dtlsParameters }, callback) => {
+        websocket?.send(
+          JSON.stringify({
+            eventName: 'voice-channel/connect_recv_transport',
+            payload: JSON.stringify({
+              roomId: payload.roomId,
+              peerId: payload.peerId,
+              dtlsParameters,
+            }),
+          }),
+        );
+        // Tell the transport that parameters were transmitted.
+        callback();
+      });
+
+      websocket?.send(
+        JSON.stringify({
+          eventName: 'voice-channel/recv_track',
+          payload: JSON.stringify({
+            roomId: payload.roomId,
+            peerId: payload.peerId,
+            rtpCapabilities: device.rtpCapabilities,
+          }),
+        }),
+      );
     });
 
     websocket = ws;
-  }, [track]);
+  }, [responseRef, track]);
 
   return { websocket };
 };
