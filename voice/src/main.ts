@@ -4,6 +4,7 @@ import {
   DtlsParameters,
   RtpParameters,
   MediaKind,
+  RtpCapabilities,
 } from 'mediasoup/node/lib/types';
 import { EachMessageHandler, Kafka } from 'kafkajs';
 import { MyRooms } from './types';
@@ -136,6 +137,41 @@ export const main = async () => {
   });
 
   await consume({
+    topic: 'connect_recv_transport',
+    groupId: 'cg-connect_recv_transport',
+    eachMessage: async ({ message }) => {
+      const { value } = message;
+
+      if (!value) return;
+      console.log('got value from topic connect_recv_transport');
+
+      type Data = {
+        roomId: string;
+        peerId: string;
+        dtlsParameters: DtlsParameters;
+      };
+      const { roomId, peerId, dtlsParameters }: Data = JSON.parse(
+        value.toString(),
+      );
+
+      // ignore if room or peer not exist
+      if (!rooms[roomId]?.state[peerId]) return;
+
+      const { state } = rooms[roomId];
+      const transport = state[peerId].recvTransport;
+      if (!transport) return;
+
+      try {
+        await transport.connect({ dtlsParameters });
+        console.log('recv transport connected using dtls');
+      } catch (err) {
+        console.log('transport connect issue: ', err);
+        return;
+      }
+    },
+  });
+
+  await consume({
     topic: 'send_track',
     groupId: 'cg-send_track',
     eachMessage: async ({ message }) => {
@@ -148,29 +184,98 @@ export const main = async () => {
         roomId: string;
         peerId: string;
         rtpParameters: RtpParameters;
+        deviceRtpCapabilities: RtpCapabilities;
         kind: MediaKind;
         appData: any;
       };
-      const { roomId, peerId, rtpParameters, kind, appData }: Data = JSON.parse(
-        value.toString(),
-      );
+      const {
+        roomId,
+        peerId: myPeerId,
+        rtpParameters,
+        deviceRtpCapabilities,
+        kind,
+        appData,
+      }: Data = JSON.parse(value.toString());
 
       // ignore if room or peer not exist
-      if (!rooms[roomId]?.state[peerId]) return;
+      if (!rooms[roomId]?.state[myPeerId]) return;
 
-      const { state } = rooms[roomId];
-      const { sendTransport, producer, consumers } = state[peerId];
+      const { state, router } = rooms[roomId];
+      const { sendTransport } = state[myPeerId];
 
       const transport = sendTransport;
       if (!transport) return;
 
-      const newProducer = await transport.produce({
+      const myProducer = await transport.produce({
         kind,
         rtpParameters,
-        appData,
+        appData: { ...appData, peerId: myPeerId },
       });
-      rooms[roomId].state[peerId].producer = newProducer;
-      newProducer.id;
+      rooms[roomId].state[myPeerId].producer = myProducer;
+
+      // Create consumers for all person in same room
+      // in order to consume your voice
+      for (const theirPeerId of Object.keys(state)) {
+        if (theirPeerId === myPeerId) continue;
+
+        const peerTransport = state[theirPeerId]?.recvTransport;
+        console.log(
+          'their peer transport',
+          JSON.stringify(peerTransport, null, 2),
+        );
+        if (!peerTransport) console.log('no recvTransport');
+        if (!peerTransport) continue;
+
+        const theirState = state[theirPeerId];
+
+        try {
+          const canConsumer = router.canConsume({
+            producerId: myProducer.id,
+            rtpCapabilities: deviceRtpCapabilities,
+          });
+          if (!canConsumer) {
+            throw new Error(
+              `recv-track: client cannot consume ${myProducer.appData.peerId}`,
+            );
+          }
+
+          const consumer = await peerTransport.consume({
+            producerId: myProducer.id,
+            rtpCapabilities: deviceRtpCapabilities,
+            paused: true,
+            appData: {
+              peerId: myPeerId,
+              mediaPeerId: myPeerId,
+            },
+          });
+
+          theirState.consumers.push(consumer);
+
+          const d = {
+            // Use to let client know and create consumer
+            theirPeerId,
+            // Use to let client know and create consumer
+            peerId: myPeerId,
+            // Use to let client know and create consumer
+            roomId: roomId,
+            consumerParameters: {
+              producerId: myProducer.id,
+              id: consumer.id,
+              kind: consumer.kind,
+              rtpParameters: consumer.rtpParameters,
+              type: consumer.type,
+              producerPaused: consumer.producerPaused,
+            },
+          };
+          await kafkaProducer.send({
+            topic: 'new_peer_speaker',
+            messages: [{ value: JSON.stringify(d) }],
+          });
+        } catch (err) {
+          // TODO: log err
+          console.log(err);
+        }
+      }
 
       await kafkaProducer.send({
         topic: 'send_track_done',
@@ -178,13 +283,83 @@ export const main = async () => {
           {
             value: JSON.stringify({
               roomId,
-              peerId,
-              producerId: newProducer.id,
+              peerId: myPeerId,
+              producerId: myProducer.id,
             }),
           },
         ],
       });
       console.log('produce -> send_track_done');
+    },
+  });
+
+  await consume({
+    topic: 'recv_track',
+    groupId: 'recv_track group',
+    eachMessage: async ({ message }) => {
+      const { value } = message;
+
+      if (!value) return;
+      console.log('got value from topic recv_track');
+
+      type Data = {
+        roomId: string;
+        peerId: string;
+        rtpCapabilities: RtpCapabilities;
+      };
+      const { roomId, peerId, rtpCapabilities }: Data = JSON.parse(
+        value.toString(),
+      );
+
+      const producer = rooms[roomId].state[peerId].producer;
+      if (!producer) {
+        console.log('recv_track cannot find producer');
+        return;
+      }
+
+      const canConsume = rooms[roomId].router.canConsume({
+        producerId: producer.id,
+        rtpCapabilities,
+      });
+      if (!canConsume) {
+        console.log('cannot consume');
+        return;
+      }
+
+      // TODO: remove undefined problem
+      const consumer = await rooms[roomId].state[peerId].recvTransport?.consume(
+        {
+          producerId: producer.id,
+          rtpCapabilities,
+        },
+      );
+      if (!consumer) {
+        console.log('cannot create consumer');
+        return;
+      }
+      consumer.on('transportclose', () => {
+        console.log('transport close from consumer');
+      });
+      consumer.on('producerclose', () => {
+        console.log('producer of consumer closed');
+      });
+
+      await kafkaProducer.send({
+        topic: 'recv_track_done',
+        messages: [
+          {
+            value: JSON.stringify({
+              roomId,
+              peerId,
+              id: consumer.id,
+              producerId: producer.id,
+              kind: consumer.kind,
+              rtpParameters: consumer.rtpParameters,
+            }),
+          },
+        ],
+      });
+      console.log('produce -> recv_track_done');
     },
   });
 };

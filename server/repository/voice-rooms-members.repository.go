@@ -11,9 +11,10 @@ type voiceRoomsMembersRepository struct{}
 var VoiceRoomRepository voiceRoomsMembersRepository
 
 func (vrr voiceRoomsMembersRepository) FindMemberIdsInRoomByRoomId(id string) (*[]string, error) {
-	sql, args, err := sq.Select("*").
-		From("voice_rooms_members").
-		Where(sq.Eq{"voice_room_id": id}).
+	sql, args, err := sq.Select("voice_channels_users.user_id").
+		From("voice_channels_users").
+		Where(sq.Eq{"voice_channel_id": id}).
+		PlaceholderFormat(sq.Dollar).
 		ToSql()
 
 	if err != nil {
