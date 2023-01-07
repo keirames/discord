@@ -27,7 +27,7 @@ export const WsWrapper: React.FC<{ children: React.ReactElement }> = ({
     ref.current = true;
 
     const token = getToken();
-    const ws = new WebSocket(`ws://localhost:4000/ws?token=${token}`);
+    const ws = new WebSocket(`ws://192.168.31.10:4000/ws?token=${token}`);
 
     ws.addEventListener('open', () => {
       setReady(ws);
@@ -73,7 +73,8 @@ export const WsWrapper: React.FC<{ children: React.ReactElement }> = ({
           sendTransportProduceEventCb({ id: producerId });
         }
 
-        if (eventName === 'voice-channel/you_joined_as_speaker' && track) {
+        if (eventName === 'voice-channel/you_joined_as_speaker') {
+          console.log('got voice-channel/you_joined_as_speaker');
           const {
             roomId,
             peerId,
@@ -95,9 +96,11 @@ export const WsWrapper: React.FC<{ children: React.ReactElement }> = ({
           const sendTransport = device.createSendTransport({
             ...sendTransportOptions,
           });
+          console.log('send transport created', sendTransport);
           const recvTransport = device.createRecvTransport({
             ...recvTransportOptions,
           });
+          console.log('recv transport created', recvTransport);
           setRecvTransport(recvTransport);
 
           sendTransport.on('connect', ({ dtlsParameters }, callback) => {
@@ -138,20 +141,24 @@ export const WsWrapper: React.FC<{ children: React.ReactElement }> = ({
               videoGoogleStartBitrate: 1000,
             },
           };
-          const producer = await sendTransport.produce({
-            ...params,
-            track,
-          });
-          producer.on('trackended', () => {
-            console.log('track ended');
 
-            // close video track
-          });
-          producer.on('transportclose', () => {
-            console.log('transport ended');
+          // TODO: testing pc purpose
+          if (track) {
+            const producer = await sendTransport.produce({
+              ...params,
+              track,
+            });
+            producer.on('trackended', () => {
+              console.log('track ended');
 
-            // close video track
-          });
+              // close video track
+            });
+            producer.on('transportclose', () => {
+              console.log('transport ended');
+
+              // close video track
+            });
+          }
 
           recvTransport.on('connect', ({ dtlsParameters }, callback) => {
             // TODO: type here

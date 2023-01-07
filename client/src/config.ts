@@ -1,5 +1,6 @@
 export const config = {
   graphql: {
-    url: 'http://localhost:4000/query',
+    // TODO: env file
+    url: 'http://192.168.31.10:4000/query',
   },
 };

@@ -23,10 +23,13 @@ export const NotYou: React.FC<Props> = (props) => {
     if (ref.current) return;
     ref.current = true;
 
+    console.log('recv trans', recvTransport);
+    console.log('cons', consumeOptions);
     if (!recvTransport || !consumeOptions) return;
 
     const connectRecvTransport = async () => {
       const consumer = await recvTransport.consume({ ...consumeOptions });
+      console.log('their peer consumer created', consumer);
       const { track } = consumer;
 
       if (voiceRef.current) {
@@ -42,7 +45,7 @@ export const NotYou: React.FC<Props> = (props) => {
   return (
     <div>
       {id}
-      <audio ref={voiceRef}></audio>
+      <audio ref={voiceRef} />
     </div>
   );
 };

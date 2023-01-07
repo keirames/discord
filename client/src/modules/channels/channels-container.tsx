@@ -36,19 +36,23 @@ const Channels: React.FC<Props> = (props) => {
 
   useEffect(() => {
     const getTracks = async () => {
-      // voice track
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-      });
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
 
-      if (audioRef.current) {
-        console.log('bind src object voice');
-        audioRef.current.srcObject = mediaStream;
-        audioRef.current.play();
+        if (audioRef.current) {
+          console.log('bind src object voice');
+          audioRef.current.srcObject = mediaStream;
+          audioRef.current.play();
+        }
+
+        const tracks = mediaStream.getAudioTracks();
+        setTrack(tracks[0]);
+      } catch (err) {
+        // TODO: machine dont have any mic
+        console.log('cannot find mic');
       }
-
-      const tracks = mediaStream.getAudioTracks();
-      setTrack(tracks[0]);
     };
 
     getTracks();
@@ -66,7 +70,7 @@ const Channels: React.FC<Props> = (props) => {
           <span className="font-bold">{data.guild.name}</span>
         </div>
         <span className="p-2 text-sm uppercase">voice channels</span>
-        <audio ref={audioRef} className="border border-red-300" />
+        <audio ref={audioRef} className="border border-red-300" muted />
         {/* <audio ref={responseRef} className="border border-red-300" autoPlay /> */}
         <button
           onClick={() => {

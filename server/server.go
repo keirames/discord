@@ -320,8 +320,10 @@ func main() {
 	go consume4(wsHub)
 	go consume5(wsHub)
 
+	// TODO: check if this secure
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000"},
+		AllowedOrigins:   []string{"http://localhost:3000", "http://192.168.31.10:3000"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		Debug:            true,
 	}).Handler)

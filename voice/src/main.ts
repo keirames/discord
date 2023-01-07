@@ -242,7 +242,8 @@ export const main = async () => {
           const consumer = await peerTransport.consume({
             producerId: myProducer.id,
             rtpCapabilities: deviceRtpCapabilities,
-            paused: true,
+            // TODO: mediasoup recommended true
+            paused: false,
             appData: {
               peerId: myPeerId,
               mediaPeerId: myPeerId,

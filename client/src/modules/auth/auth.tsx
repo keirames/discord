@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { setToken } from '../../local-storage';
+import { graphQLClient } from '../../graphql-client';
+import { getToken, setToken } from '../../local-storage';
 import { Chat } from '../chat/chat';
 import { Container } from '../voice-room/container';
 import { useAuthStore } from './use-auth-store';
@@ -14,6 +15,7 @@ export const Auth = () => {
     if (mutation.data) {
       console.log('set new token');
       setToken(mutation.data.signIn);
+      graphQLClient.setHeader('Authorization', `Bearer ${getToken()}`);
     }
   }, [mutation.data]);
 
