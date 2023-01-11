@@ -71,19 +71,6 @@ const Channels: React.FC<Props> = (props) => {
         </div>
         <span className="p-2 text-sm uppercase">voice channels</span>
         <audio ref={audioRef} className="border border-red-300" muted />
-        {/* <audio ref={responseRef} className="border border-red-300" autoPlay /> */}
-        <button
-          onClick={() => {
-            // websocket?.send(
-            //   JSON.stringify({
-            //     eventName: 'voice-channel/join-as-peer',
-            //     payload: JSON.stringify({ roomId: 'abc' }),
-            //   }),
-            // );
-          }}
-        >
-          receive track
-        </button>
         {voiceChannels.map((vc) => (
           <div key={vc.id} className="p-2">
             <div
@@ -92,10 +79,7 @@ const Channels: React.FC<Props> = (props) => {
                   true,
                 'bg-dark-600': pickedChannel === vc.id,
               })}
-              // onClick={async () => {
-              //   pickChannel(vc.id);
-              //   if (user?.id) addMember(user.id);
-              // }}
+              onClick={async () => {}}
             >
               <AiFillSound />
               <span className="mx-2 capitalize">{vc.name}</span>
