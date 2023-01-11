@@ -10,12 +10,13 @@ import { EachMessageHandler, Kafka } from 'kafkajs';
 import { MyRooms } from './types';
 import { startMediasoup } from './utils/start-mediasoup';
 import { createTransport, transportToOptions } from './utils/create-transport';
+import { env } from './env/load-env';
 
 const rooms: MyRooms = {};
 
 const kafka = new Kafka({
   clientId: 'my-app',
-  brokers: ['localhost:9092'],
+  brokers: [env.BROKER],
 });
 
 export const main = async () => {
@@ -117,7 +118,7 @@ export const main = async () => {
         dtlsParameters: DtlsParameters;
       };
       const { roomId, peerId, dtlsParameters }: Data = JSON.parse(
-        value.toString(),
+        value.toString()
       );
 
       // ignore if room or peer not exist
@@ -151,7 +152,7 @@ export const main = async () => {
         dtlsParameters: DtlsParameters;
       };
       const { roomId, peerId, dtlsParameters }: Data = JSON.parse(
-        value.toString(),
+        value.toString()
       );
 
       // ignore if room or peer not exist
@@ -221,7 +222,7 @@ export const main = async () => {
         const peerTransport = state[theirPeerId]?.recvTransport;
         console.log(
           'their peer transport',
-          JSON.stringify(peerTransport, null, 2),
+          JSON.stringify(peerTransport, null, 2)
         );
         if (!peerTransport) console.log('no recvTransport');
         if (!peerTransport) continue;
@@ -235,7 +236,7 @@ export const main = async () => {
           });
           if (!canConsumer) {
             throw new Error(
-              `recv-track: client cannot consume ${myProducer.appData.peerId}`,
+              `recv-track: client cannot consume ${myProducer.appData.peerId}`
             );
           }
 
@@ -309,7 +310,7 @@ export const main = async () => {
         rtpCapabilities: RtpCapabilities;
       };
       const { roomId, peerId, rtpCapabilities }: Data = JSON.parse(
-        value.toString(),
+        value.toString()
       );
 
       const producer = rooms[roomId].state[peerId].producer;
@@ -332,7 +333,7 @@ export const main = async () => {
         {
           producerId: producer.id,
           rtpCapabilities,
-        },
+        }
       );
       if (!consumer) {
         console.log('cannot create consumer');
